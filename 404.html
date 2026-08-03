@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redirecting… — The Ultimate Rust Book</title>
+  <script>
+    // GitHub Pages serves this for unknown paths. The book is a hash-routed
+    // SPA, so send everyone to the app root, preserving any hash.
+    location.replace('./' + (location.hash || '#/'));
+  </script>
+</head>
+<body>Redirecting to <a href="./#/">The Ultimate Rust Book</a>…</body>
+</html>

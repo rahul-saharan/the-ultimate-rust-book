@@ -1,0 +1,6 @@
+# The Ultimate Rust Book
+User-agent: *
+Allow: /
+
+# After deploying, replace YOUR-DOMAIN.example with your real domain.
+Sitemap: https://YOUR-DOMAIN.example/sitemap.xml

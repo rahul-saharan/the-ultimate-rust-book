@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Ultimate Rust Book — Learn Rust Free, Beginner to Advanced (with Live Compiler)</title>
+  <meta name="description" content="Learn Rust for free — the complete, visual Rust programming guide from your first program to async, unsafe, macros, the standard library, the best crates, and a full data-structures & algorithms course. Runnable examples with an in-browser Rust compiler." />
+  <meta name="keywords" content="rust, learn rust, rust tutorial, rust programming language, rust book, rust guide, rust for beginners, rust programming tutorial, rust lang, learn rust programming, rust async, rust ownership, rust traits, rust lifetimes, rust examples, rust playground, rust data structures and algorithms, rust cheat sheet, free rust course" />
+  <meta name="author" content="Rahul Saharan" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <!-- TODO (once you have a domain): add a self-referential canonical, e.g.
+       <link rel="canonical" href="https://your-domain/"> -->
+  <meta name="theme-color" content="#f96316" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A6%80%3C/text%3E%3C/svg%3E" />
+
+  <!-- Open Graph (Facebook, LinkedIn, Slack, Discord…) — domain-independent tags -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="The Ultimate Rust Book" />
+  <meta property="og:title" content="The Ultimate Rust Book — Learn Rust Free, Beginner to Advanced" />
+  <meta property="og:description" content="The complete, free, visual Rust guide — fundamentals to async, unsafe, macros, crates, and a full DSA course, with a live in-browser Rust compiler." />
+  <meta property="og:locale" content="en_US" />
+  <!-- TODO (once you have a domain) add absolute URLs so shares show the cover image:
+       <meta property="og:url" content="https://your-domain/">
+       <meta property="og:image" content="https://your-domain/assets/og-cover.png"> -->
+
+  <!-- Structured data — helps Google understand this is a learning resource -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "The Ultimate Rust Book",
+    "description": "A free, complete, visual guide to the Rust programming language, from beginner to advanced, with a live in-browser compiler.",
+    "inLanguage": "en",
+    "author": { "@type": "Person", "name": "Rahul Saharan" },
+    "about": ["Rust programming language", "Systems programming", "Data structures and algorithms"],
+    "keywords": "learn rust, rust tutorial, rust book, rust programming guide, rust for beginners"
+  }
+  </script>
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <!-- Set theme before paint to avoid flash -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('rustbook-theme');
+        if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <!-- ============ HEADER ============ -->
+  <header class="app-header">
+    <button id="menu-toggle" class="icon-btn" aria-label="Toggle menu" title="Menu">☰</button>
+    <a href="#/" class="brand" aria-label="Home">
+      <span class="logo">🦀</span>
+      <span class="full">The Ultimate <b>Rust</b> Book</span>
+    </a>
+    <div class="header-search" id="header-search" role="button" tabindex="0" aria-label="Search (press / or Ctrl+K)">
+      <span class="search-icon">🔍</span>
+      <input id="search-trigger" type="text" placeholder="Search the book…" readonly />
+      <kbd>Ctrl K</kbd>
+    </div>
+    <div class="header-spacer"></div>
+    <a href="#/progress" class="icon-btn" title="Your learning progress &amp; bookmarks" aria-label="Progress">📊</a>
+    <a href="#/playground" class="icon-btn" title="Open the Rust Playground" aria-label="Playground">▶️</a>
+    <button id="theme-toggle" class="icon-btn" title="Toggle light / dark" aria-label="Toggle theme">🌙</button>
+    <a href="#/" class="icon-btn" id="repo-link" title="Source on GitHub" aria-label="GitHub" target="_blank" rel="noopener" style="display:none">⭐</a>
+  </header>
+
+  <!-- ============ LAYOUT ============ -->
+  <div class="layout">
+    <aside class="sidebar" id="sidebar" aria-label="Chapters">
+      <div class="nav-progress" id="nav-progress">
+        <div class="bar"><i id="progress-bar"></i></div>
+        <div class="label"><span>Your progress</span><span id="progress-label">0%</span></div>
+        <a href="#/progress" class="nav-progress-link">View progress &amp; bookmarks →</a>
+      </div>
+      <nav id="nav-tree"><!-- built from toc.json --></nav>
+    </aside>
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <main class="main">
+      <div class="content-wrap">
+        <article class="content" id="content">
+          <div class="page-loader"><div><div class="crab">🦀</div>Loading…</div></div>
+          <noscript>
+            <h1>The Ultimate Rust Book — Learn Rust, Free, from Beginner to Advanced</h1>
+            <p>A free, complete, visual guide to the <strong>Rust programming language</strong>. Learn Rust
+              from your first <code>println!</code> through ownership, borrowing, traits, generics, lifetimes,
+              error handling, iterators, and smart pointers — then on to <strong>async Rust</strong>,
+              <strong>unsafe</strong>, <strong>macros</strong>, concurrency, the standard library, the most
+              useful crates (serde, tokio, axum, actix, clap, and more), and a full
+              <strong>data structures &amp; algorithms</strong> course. Every example is runnable with a live,
+              in-browser Rust compiler.</p>
+            <p>This is an interactive single-page app — please enable JavaScript to read the chapters, run code,
+              search, and track your progress.</p>
+          </noscript>
+        </article>
+        <aside class="toc-right" id="toc-right" aria-label="On this page"></aside>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ SEARCH OVERLAY ============ -->
+  <div class="search-overlay" id="search-overlay">
+    <div class="search-panel">
+      <input id="search-input" type="text" placeholder="Search chapters, concepts, code…" autocomplete="off" spellcheck="false" />
+      <div class="search-results" id="search-results"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- ============ SCRIPTS (classic, in dependency order) ============ -->
+  <script src="assets/vendor/marked.min.js"></script>
+  <script src="assets/vendor/prism-core.min.js"></script>
+  <script src="assets/vendor/prism-clike.min.js"></script>
+  <script src="assets/vendor/prism-rust.min.js"></script>
+  <script src="assets/vendor/prism-bash.min.js"></script>
+  <script src="assets/vendor/prism-toml.min.js"></script>
+  <script src="assets/vendor/prism-json.min.js"></script>
+  <script src="assets/vendor/prism-sql.min.js"></script>
+  <script src="assets/js/markdown.js"></script>
+  <script src="assets/js/playground.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+name: Verify
+
+# Compile-checks every runnable code example in the book and confirms the search
+# index is up to date. Runs on every push and pull request.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install the Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Compile-check every runnable code block
+        run: node tools/verify-code.js
+
+      - name: Confirm the search index is up to date
+        run: |
+          node tools/build-search-index.js
+          if ! git diff --quiet -- data/search-index.json; then
+            echo "::error::data/search-index.json is out of date."
+            echo "Run 'node tools/build-search-index.js' and commit the result."
+            exit 1
+          fi

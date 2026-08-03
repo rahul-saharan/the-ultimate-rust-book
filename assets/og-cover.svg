@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b1207"/>
+      <stop offset="0.55" stop-color="#2a1608"/>
+      <stop offset="1" stop-color="#3a1a0c"/>
+    </linearGradient>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff8a3d"/>
+      <stop offset="0.45" stop-color="#f96316"/>
+      <stop offset="1" stop-color="#e23e57"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.15" r="0.9">
+      <stop offset="0" stop-color="#f96316" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#f96316" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- logo tile -->
+  <rect x="90" y="120" width="120" height="120" rx="28" fill="#0f0a05" stroke="#5a3a1f" stroke-width="2"/>
+  <text x="150" y="205" font-size="74" text-anchor="middle">🦀</text>
+
+  <!-- kicker -->
+  <text x="240" y="168" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="26" font-weight="700" letter-spacing="3" fill="#ff9a52">FREE · VISUAL · INTERACTIVE</text>
+  <!-- title -->
+  <text x="240" y="230" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="#c9b8a8">The Ultimate</text>
+
+  <text x="86" y="380" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="150" font-weight="800" fill="#ffffff">Rust <tspan fill="url(#brand)">Book</tspan></text>
+
+  <!-- subtitle -->
+  <text x="90" y="452" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="34" font-weight="600" fill="#d8c8ba">Learn Rust — beginner to advanced, with a live compiler.</text>
+
+  <!-- chips -->
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="26" font-weight="700">
+    <rect x="90"  y="498" width="200" height="58" rx="29" fill="#0f0a05" stroke="#5a3a1f" stroke-width="2"/>
+    <text x="190" y="536" text-anchor="middle" fill="#ffb27a">Ownership</text>
+    <rect x="308" y="498" width="150" height="58" rx="29" fill="#0f0a05" stroke="#5a3a1f" stroke-width="2"/>
+    <text x="383" y="536" text-anchor="middle" fill="#ffb27a">Async</text>
+    <rect x="476" y="498" width="150" height="58" rx="29" fill="#0f0a05" stroke="#5a3a1f" stroke-width="2"/>
+    <text x="551" y="536" text-anchor="middle" fill="#ffb27a">Crates</text>
+    <rect x="644" y="498" width="270" height="58" rx="29" fill="#0f0a05" stroke="#5a3a1f" stroke-width="2"/>
+    <text x="779" y="536" text-anchor="middle" fill="#ffb27a">DSA + Algorithms</text>
+  </g>
+
+  <!-- run badge -->
+  <g>
+    <rect x="946" y="120" width="164" height="60" rx="30" fill="url(#brand)"/>
+    <text x="1028" y="159" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="28" font-weight="800" fill="#ffffff">▶ Run</text>
+  </g>
+</svg>

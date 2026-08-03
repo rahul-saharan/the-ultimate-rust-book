@@ -1,0 +1,1259 @@
+{
+  "title": "The Ultimate Rust Book",
+  "repo": "",
+  "parts": [
+    {
+      "title": "Getting Started",
+      "chapters": [
+        {
+          "id": "welcome",
+          "title": "Welcome & How to Use This Book",
+          "file": "welcome.md",
+          "level": "beginner",
+          "time": "6 min",
+          "summary": "What Rust is, why it matters, and how to get the most out of this book.",
+          "keywords": "introduction why rust safety performance foreword guide"
+        },
+        {
+          "id": "installation",
+          "title": "Installing Rust & Your Toolbox",
+          "file": "installation.md",
+          "level": "beginner",
+          "time": "8 min",
+          "summary": "Install rustup, cargo, and set up a great editor for Rust.",
+          "keywords": "rustup install cargo toolchain vscode rust-analyzer setup windows mac linux"
+        },
+        {
+          "id": "hello-world",
+          "title": "Hello, World! and Hello, Cargo",
+          "file": "hello-world.md",
+          "level": "beginner",
+          "time": "10 min",
+          "summary": "Write, compile, and run your very first Rust programs.",
+          "keywords": "hello world println main compile rustc first program"
+        },
+        {
+          "id": "cargo",
+          "title": "Cargo: Build Tool & Package Manager",
+          "file": "cargo.md",
+          "level": "beginner",
+          "time": "12 min",
+          "summary": "Master Cargo: building, running, testing, dependencies, and Cargo.toml.",
+          "keywords": "cargo build run test crates.io dependencies Cargo.toml manifest profiles"
+        }
+      ]
+    },
+    {
+      "title": "Rust Foundations",
+      "chapters": [
+        {
+          "id": "variables",
+          "title": "Variables & Mutability",
+          "file": "variables.md",
+          "level": "beginner",
+          "time": "10 min",
+          "summary": "let, mut, constants, shadowing — how Rust stores values.",
+          "keywords": "let mut const shadowing immutable variables binding"
+        },
+        {
+          "id": "data-types",
+          "title": "Data Types",
+          "file": "data-types.md",
+          "level": "beginner",
+          "time": "14 min",
+          "summary": "Integers, floats, booleans, characters, tuples, and arrays.",
+          "keywords": "i32 u8 f64 bool char tuple array scalar compound types integer overflow"
+        },
+        {
+          "id": "functions",
+          "title": "Functions",
+          "file": "functions.md",
+          "level": "beginner",
+          "time": "10 min",
+          "summary": "Defining functions, parameters, return values, statements vs expressions.",
+          "keywords": "fn function parameters return expression statement"
+        },
+        {
+          "id": "comments",
+          "title": "Comments & Documentation",
+          "file": "comments.md",
+          "level": "beginner",
+          "time": "7 min",
+          "summary": "Line, block, and doc comments — plus cargo doc.",
+          "keywords": "comments doc comments /// //! rustdoc cargo doc documentation"
+        },
+        {
+          "id": "control-flow",
+          "title": "Control Flow",
+          "file": "control-flow.md",
+          "level": "beginner",
+          "time": "13 min",
+          "summary": "if/else, loop, while, for, and loop labels.",
+          "keywords": "if else loop while for break continue label control flow ranges"
+        }
+      ]
+    },
+    {
+      "title": "Ownership — The Heart of Rust",
+      "chapters": [
+        {
+          "id": "ownership",
+          "title": "Ownership",
+          "file": "ownership.md",
+          "level": "beginner",
+          "time": "18 min",
+          "summary": "The single idea that makes Rust safe without a garbage collector.",
+          "keywords": "ownership move copy drop scope memory heap stack free"
+        },
+        {
+          "id": "references-borrowing",
+          "title": "References & Borrowing",
+          "file": "references-borrowing.md",
+          "level": "beginner",
+          "time": "16 min",
+          "summary": "Borrowing values with & and &mut, and the borrow checker's rules.",
+          "keywords": "references borrowing mutable reference borrow checker aliasing dangling"
+        },
+        {
+          "id": "slices",
+          "title": "The Slice Type",
+          "file": "slices.md",
+          "level": "beginner",
+          "time": "12 min",
+          "summary": "Borrow a contiguous part of a collection: string slices and array slices.",
+          "keywords": "slice &str string slice array slice range fat pointer"
+        },
+        {
+          "id": "stack-heap",
+          "title": "Stack, Heap & the Memory Model",
+          "file": "stack-heap.md",
+          "level": "intermediate",
+          "time": "14 min",
+          "summary": "Where your data actually lives, and why it matters for performance.",
+          "keywords": "stack heap memory allocation pointer layout sized copy move"
+        }
+      ]
+    },
+    {
+      "title": "Structuring Data",
+      "chapters": [
+        {
+          "id": "structs",
+          "title": "Structs",
+          "file": "structs.md",
+          "level": "beginner",
+          "time": "14 min",
+          "summary": "Custom types that group related data together.",
+          "keywords": "struct tuple struct unit struct fields derive debug update syntax"
+        },
+        {
+          "id": "enums",
+          "title": "Enums",
+          "file": "enums.md",
+          "level": "beginner",
+          "time": "20 min",
+          "summary": "Types that are one of several variants — Rust's superpower: data-carrying variants, memory layout, making illegal states impossible, state machines, recursive & generic enums, Option and Result.",
+          "keywords": "enum variants Option Result data-carrying enums algebraic sum type tag discriminant memory layout niche illegal states state machine recursive Box generic Either match if let let else discriminant C-like HttpStatus"
+        },
+        {
+          "id": "pattern-matching",
+          "title": "Pattern Matching & match",
+          "file": "pattern-matching.md",
+          "level": "beginner",
+          "time": "16 min",
+          "summary": "Destructure and branch on data with match, if let, and while let.",
+          "keywords": "match if let while let patterns destructure guards bindings exhaustive"
+        },
+        {
+          "id": "methods",
+          "title": "Methods & Associated Functions",
+          "file": "methods.md",
+          "level": "beginner",
+          "time": "11 min",
+          "summary": "Give your types behavior with impl blocks.",
+          "keywords": "impl self method associated function constructor new receiver"
+        }
+      ]
+    },
+    {
+      "title": "Organizing Code",
+      "chapters": [
+        {
+          "id": "modules",
+          "title": "Modules, Paths & Visibility",
+          "file": "modules.md",
+          "level": "intermediate",
+          "time": "15 min",
+          "summary": "Organize code with modules, control what's public with pub.",
+          "keywords": "mod module path pub use super crate visibility namespace re-export"
+        },
+        {
+          "id": "packages-crates",
+          "title": "Packages, Crates & the Module Tree",
+          "file": "packages-crates.md",
+          "level": "intermediate",
+          "time": "11 min",
+          "summary": "How Rust projects are structured, from binary to library crates.",
+          "keywords": "package crate binary library crate root module tree bin lib"
+        },
+        {
+          "id": "workspaces",
+          "title": "Cargo Workspaces",
+          "file": "workspaces.md",
+          "level": "intermediate",
+          "time": "10 min",
+          "summary": "Manage many related crates in one repository.",
+          "keywords": "workspace members shared dependencies monorepo cargo"
+        }
+      ]
+    },
+    {
+      "title": "Common Collections",
+      "chapters": [
+        {
+          "id": "vectors",
+          "title": "Vectors",
+          "file": "vectors.md",
+          "level": "beginner",
+          "time": "13 min",
+          "summary": "Growable arrays — the workhorse collection of Rust.",
+          "keywords": "Vec push pop index iterate capacity growable array with_capacity"
+        },
+        {
+          "id": "strings",
+          "title": "Strings & Text",
+          "file": "strings.md",
+          "level": "intermediate",
+          "time": "16 min",
+          "summary": "String vs &str, UTF-8, and why indexing a string is tricky.",
+          "keywords": "String str UTF-8 bytes chars graphemes push_str format encoding"
+        },
+        {
+          "id": "hashmaps",
+          "title": "Hash Maps",
+          "file": "hashmaps.md",
+          "level": "beginner",
+          "time": "13 min",
+          "summary": "Key-value storage with HashMap, entry API, and hashing.",
+          "keywords": "HashMap entry keys values insert get hashing BTreeMap"
+        },
+        {
+          "id": "other-collections",
+          "title": "VecDeque, BTreeMap, HashSet & Friends",
+          "file": "other-collections.md",
+          "level": "intermediate",
+          "time": "12 min",
+          "summary": "The rest of std::collections and when to reach for each.",
+          "keywords": "VecDeque BTreeMap BTreeSet HashSet BinaryHeap LinkedList collections"
+        }
+      ]
+    },
+    {
+      "title": "Error Handling",
+      "chapters": [
+        {
+          "id": "panic",
+          "title": "Unrecoverable Errors with panic!",
+          "file": "panic.md",
+          "level": "beginner",
+          "time": "9 min",
+          "summary": "When and why a Rust program aborts, plus backtraces.",
+          "keywords": "panic unwind abort backtrace RUST_BACKTRACE unreachable assert"
+        },
+        {
+          "id": "result-option",
+          "title": "Recoverable Errors: Result & Option",
+          "file": "result-option.md",
+          "level": "beginner",
+          "time": "16 min",
+          "summary": "Model success/failure and presence/absence in the type system.",
+          "keywords": "Result Option Ok Err Some None unwrap expect match error handling"
+        },
+        {
+          "id": "question-mark",
+          "title": "The ? Operator & Error Propagation",
+          "file": "question-mark.md",
+          "level": "intermediate",
+          "time": "12 min",
+          "summary": "Propagate errors cleanly with ? and the From trait.",
+          "keywords": "question mark operator propagation From conversion Box dyn Error main"
+        },
+        {
+          "id": "custom-errors",
+          "title": "Custom Errors, thiserror & anyhow",
+          "file": "custom-errors.md",
+          "level": "intermediate",
+          "time": "14 min",
+          "summary": "Design your own error types and choose the right error crate.",
+          "keywords": "custom error enum thiserror anyhow Error trait Display source context"
+        }
+      ]
+    },
+    {
+      "title": "Generics, Traits & Lifetimes",
+      "chapters": [
+        {
+          "id": "generics",
+          "title": "Generics",
+          "file": "generics.md",
+          "level": "intermediate",
+          "time": "14 min",
+          "summary": "Write code that works for many types without duplication.",
+          "keywords": "generics type parameters monomorphization bounds where clause turbofish"
+        },
+        {
+          "id": "traits",
+          "title": "Traits: Defining Shared Behavior",
+          "file": "traits.md",
+          "level": "intermediate",
+          "time": "18 min",
+          "summary": "Rust's answer to interfaces — shared behavior across types.",
+          "keywords": "trait impl default methods bounds blanket impl orphan rule derive"
+        },
+        {
+          "id": "trait-objects",
+          "title": "Trait Objects & Dynamic Dispatch",
+          "file": "trait-objects.md",
+          "level": "intermediate",
+          "time": "13 min",
+          "summary": "dyn Trait, vtables, and static vs dynamic dispatch.",
+          "keywords": "dyn trait object vtable dynamic dispatch object safety Box dyn fat pointer"
+        },
+        {
+          "id": "lifetimes",
+          "title": "Lifetimes",
+          "file": "lifetimes.md",
+          "level": "intermediate",
+          "time": "24 min",
+          "summary": "Teach the compiler how long references are valid.",
+          "keywords": "lifetime annotation elision borrow checker 'a 'static generic lifetime dangling variance subtyping covariant invariant contravariant outlives HRTB for<a> higher-ranked lifetime bound static bound"
+        },
+        {
+          "id": "advanced-traits",
+          "title": "Advanced Traits",
+          "file": "advanced-traits.md",
+          "level": "advanced",
+          "time": "16 min",
+          "summary": "Associated types, operator overloading, supertraits, and the newtype trick.",
+          "keywords": "associated types operator overloading Add supertrait newtype fully qualified"
+        }
+      ]
+    },
+    {
+      "title": "Functional Rust",
+      "chapters": [
+        {
+          "id": "closures",
+          "title": "Closures",
+          "file": "closures.md",
+          "level": "intermediate",
+          "time": "14 min",
+          "summary": "Anonymous functions that capture their environment.",
+          "keywords": "closure Fn FnMut FnOnce capture move environment function pointer"
+        },
+        {
+          "id": "iterators",
+          "title": "Iterators",
+          "file": "iterators.md",
+          "level": "intermediate",
+          "time": "16 min",
+          "summary": "The Iterator trait, laziness, and zero-cost abstractions.",
+          "keywords": "iterator next lazy map filter collect fold sum zero-cost adapter consumer"
+        },
+        {
+          "id": "iterator-adapters",
+          "title": "The Iterator Adapters Cookbook",
+          "file": "iterator-adapters.md",
+          "level": "intermediate",
+          "time": "15 min",
+          "summary": "A visual reference to map, filter, zip, flat_map, chunks, and more.",
+          "keywords": "map filter zip enumerate flat_map take skip windows chunks scan reduce partition"
+        }
+      ]
+    },
+    {
+      "title": "Testing & Quality",
+      "chapters": [
+        {
+          "id": "writing-tests",
+          "title": "Writing Tests",
+          "file": "writing-tests.md",
+          "level": "beginner",
+          "time": "13 min",
+          "summary": "Unit tests, assertions, and the #[test] attribute.",
+          "keywords": "test assert_eq should_panic unit test cargo test attribute Result tests"
+        },
+        {
+          "id": "test-organization",
+          "title": "Test Organization & Integration Tests",
+          "file": "test-organization.md",
+          "level": "intermediate",
+          "time": "11 min",
+          "summary": "Unit vs integration tests, test modules, and fixtures.",
+          "keywords": "integration tests tests directory common module test organization doc tests"
+        },
+        {
+          "id": "testing-advanced",
+          "title": "Testing in Depth",
+          "file": "testing-advanced.md",
+          "level": "advanced",
+          "time": "20 min",
+          "summary": "Design for testability, test doubles (fakes and mocks), table-driven and property-based tests, snapshot tests, async tests, HTTP API and database integration testing, and code coverage.",
+          "keywords": "testability dependency injection trait fake mock mockall stub spy test double table-driven rstest property-based proptest invariant shrink snapshot insta async tokio::test integration test spawn port 0 sqlx::test database isolation coverage cargo-llvm-cov testcontainers"
+        },
+        {
+          "id": "benchmarking",
+          "title": "Benchmarking & Profiling",
+          "file": "benchmarking.md",
+          "level": "advanced",
+          "time": "12 min",
+          "summary": "Measure performance with criterion and find hot spots.",
+          "keywords": "benchmark criterion profiling flamegraph perf black_box optimization"
+        },
+        {
+          "id": "clippy-fmt",
+          "title": "Clippy, rustfmt & Lints",
+          "file": "clippy-fmt.md",
+          "level": "beginner",
+          "time": "9 min",
+          "summary": "Keep your code clean and idiomatic automatically.",
+          "keywords": "clippy rustfmt lint format idiomatic allow deny warn attributes"
+        }
+      ]
+    },
+    {
+      "title": "Smart Pointers",
+      "chapters": [
+        {
+          "id": "box",
+          "title": "Box<T>: Heap Allocation",
+          "file": "box.md",
+          "level": "intermediate",
+          "time": "11 min",
+          "summary": "The simplest smart pointer — own data on the heap.",
+          "keywords": "Box heap recursive types dyn trait indirection sized"
+        },
+        {
+          "id": "rc-arc",
+          "title": "Rc, Arc & Shared Ownership",
+          "file": "rc-arc.md",
+          "level": "intermediate",
+          "time": "14 min",
+          "summary": "Multiple owners of the same data via reference counting.",
+          "keywords": "Rc Arc reference counting shared ownership clone strong count thread safe"
+        },
+        {
+          "id": "refcell",
+          "title": "RefCell & Interior Mutability",
+          "file": "refcell.md",
+          "level": "advanced",
+          "time": "14 min",
+          "summary": "Mutate data through a shared reference — safely, at runtime.",
+          "keywords": "RefCell Cell interior mutability borrow_mut runtime borrow check panic"
+        },
+        {
+          "id": "deref-drop",
+          "title": "Deref & Drop",
+          "file": "deref-drop.md",
+          "level": "advanced",
+          "time": "12 min",
+          "summary": "Customize dereferencing and cleanup for your own smart pointers.",
+          "keywords": "Deref DerefMut Drop deref coercion RAII cleanup destructor"
+        },
+        {
+          "id": "weak-cycles",
+          "title": "Weak & Breaking Reference Cycles",
+          "file": "weak-cycles.md",
+          "level": "advanced",
+          "time": "12 min",
+          "summary": "Avoid memory leaks from cyclic Rc graphs with Weak.",
+          "keywords": "Weak reference cycle memory leak upgrade downgrade parent child tree"
+        }
+      ]
+    },
+    {
+      "title": "Fearless Concurrency",
+      "chapters": [
+        {
+          "id": "threads",
+          "title": "Threads",
+          "file": "threads.md",
+          "level": "intermediate",
+          "time": "13 min",
+          "summary": "Spawn OS threads and share work across cores.",
+          "keywords": "thread spawn join move closure JoinHandle parallelism scoped threads"
+        },
+        {
+          "id": "channels",
+          "title": "Message Passing with Channels",
+          "file": "channels.md",
+          "level": "intermediate",
+          "time": "12 min",
+          "summary": "Communicate between threads by sending messages.",
+          "keywords": "channel mpsc send recv producer consumer sync_channel crossbeam"
+        },
+        {
+          "id": "shared-state",
+          "title": "Shared State: Mutex & RwLock",
+          "file": "shared-state.md",
+          "level": "intermediate",
+          "time": "14 min",
+          "summary": "Safely share mutable data between threads with locks.",
+          "keywords": "Mutex RwLock Arc lock poisoning deadlock shared state guard"
+        },
+        {
+          "id": "send-sync",
+          "title": "Send, Sync & Thread Safety",
+          "file": "send-sync.md",
+          "level": "advanced",
+          "time": "12 min",
+          "summary": "The two traits that make Rust concurrency fearless.",
+          "keywords": "Send Sync marker traits thread safety auto traits data race"
+        },
+        {
+          "id": "atomics",
+          "title": "Atomics & Lock-Free Basics",
+          "file": "atomics.md",
+          "level": "advanced",
+          "time": "22 min",
+          "summary": "How atomics work and why: the lost-update problem, atomic types, CAS loops, building a spinlock from an AtomicBool, memory ordering (Relaxed/Acquire/Release/SeqCst), real project uses (shutdown flags, counters, unique IDs), and pitfalls — with visuals.",
+          "keywords": "atomic AtomicBool AtomicUsize AtomicU64 AtomicPtr Ordering Relaxed Acquire Release SeqCst compare_exchange compare_exchange_weak fetch_add fetch_update swap CAS compare and swap lock-free spinlock build lock from atomic memory ordering false sharing ABA problem shutdown flag counter metrics unique id OnceLock interior mutability publish subscribe"
+        },
+        {
+          "id": "rayon",
+          "title": "Data Parallelism with Rayon",
+          "file": "rayon.md",
+          "level": "intermediate",
+          "time": "11 min",
+          "summary": "Turn iterators parallel by changing one line.",
+          "keywords": "rayon par_iter parallel data parallelism work stealing join map reduce"
+        }
+      ]
+    },
+    {
+      "title": "Asynchronous Rust",
+      "chapters": [
+        {
+          "id": "async-intro",
+          "title": "Async & Await: The Big Picture",
+          "file": "async-intro.md",
+          "level": "intermediate",
+          "time": "16 min",
+          "summary": "What async really means and how it differs from threads.",
+          "keywords": "async await future concurrency non-blocking runtime executor task"
+        },
+        {
+          "id": "futures",
+          "title": "Futures & the Poll Model",
+          "file": "futures.md",
+          "level": "advanced",
+          "time": "15 min",
+          "summary": "How futures are just state machines the runtime drives.",
+          "keywords": "Future poll Pending Ready Waker Context state machine executor poll"
+        },
+        {
+          "id": "tokio",
+          "title": "The Tokio Runtime",
+          "file": "tokio.md",
+          "level": "intermediate",
+          "time": "26 min",
+          "summary": "The full tokio tour: tasks, timers, interval ticks, select!, channels, the work-stealing scheduler, spawn_blocking, runtime config, async Mutex/RwLock/Semaphore/watch, cancellation, and graceful shutdown.",
+          "keywords": "tokio spawn runtime async main tasks join_all timer sleep timeout interval tick ticks periodic select race channels mpsc oneshot broadcast watch Mutex RwLock Semaphore concurrency limit cancellation abort JoinHandle JoinSet CancellationToken graceful shutdown signal ctrl_c work-stealing spawn_blocking tcp async io"
+        },
+        {
+          "id": "async-patterns",
+          "title": "Streams, select! & Cancellation",
+          "file": "async-patterns.md",
+          "level": "advanced",
+          "time": "14 min",
+          "summary": "Async iteration, racing futures, timeouts, and graceful shutdown.",
+          "keywords": "Stream select join timeout cancellation graceful shutdown backpressure"
+        },
+        {
+          "id": "pinning",
+          "title": "Pin, Unpin & Self-Referential Futures",
+          "file": "pinning.md",
+          "level": "advanced",
+          "time": "14 min",
+          "summary": "The trickiest corner of async Rust, explained visually.",
+          "keywords": "Pin Unpin self-referential move future memory address pinning"
+        },
+        {
+          "id": "async-ecosystem",
+          "title": "Choosing a Runtime",
+          "file": "async-ecosystem.md",
+          "level": "intermediate",
+          "time": "9 min",
+          "summary": "tokio vs async-std vs smol — trade-offs and interop.",
+          "keywords": "async-std smol tokio runtime comparison compatibility ecosystem"
+        }
+      ]
+    },
+    {
+      "title": "Advanced Rust",
+      "chapters": [
+        {
+          "id": "unsafe",
+          "title": "Unsafe Rust",
+          "file": "unsafe.md",
+          "level": "advanced",
+          "time": "16 min",
+          "summary": "The five unsafe superpowers and how to use them responsibly.",
+          "keywords": "unsafe raw pointer dereference FFI static mut union undefined behavior invariant"
+        },
+        {
+          "id": "macros-declarative",
+          "title": "Declarative Macros: macro_rules!",
+          "file": "macros-declarative.md",
+          "level": "advanced",
+          "time": "15 min",
+          "summary": "Write code that writes code with pattern-based macros.",
+          "keywords": "macro_rules declarative macro fragment specifier repetition hygiene vec macro"
+        },
+        {
+          "id": "macros-procedural",
+          "title": "Procedural Macros & Derive",
+          "file": "macros-procedural.md",
+          "level": "advanced",
+          "time": "16 min",
+          "summary": "Custom derive, attribute, and function-like macros with syn & quote.",
+          "keywords": "proc macro derive attribute TokenStream syn quote custom derive"
+        },
+        {
+          "id": "advanced-types",
+          "title": "Advanced Types",
+          "file": "advanced-types.md",
+          "level": "advanced",
+          "time": "13 min",
+          "summary": "Newtypes, type aliases, the never type, and dynamically sized types.",
+          "keywords": "newtype type alias never type ! DST dynamically sized PhantomData"
+        },
+        {
+          "id": "type-system",
+          "title": "Every Type in Rust, from Basic to Advanced",
+          "file": "type-system.md",
+          "level": "intermediate",
+          "time": "45 min",
+          "summary": "The complete catalog of every Rust type explained one by one — bool, char, integers, floats, str, String, tuples, arrays, slices, references, Box, Rc/Arc, structs, enums, Option, Result, Vec, HashMap, closures, generics, dyn Trait and more — each with theory, a diagram, an example, and its usefulness.",
+          "keywords": "type system every type all types catalog reference bool char integer float i32 u8 usize f64 str String tuple array slice reference borrow raw pointer Box Rc Arc Cell RefCell Cow struct enum union Option Result Vec VecDeque HashMap BTreeMap HashSet range closure fn Fn FnMut FnOnce generic const generic dyn impl trait sized unsized DST fat pointer cardinality zero-sized ZST never type ! vtable dispatch monomorphization marker Copy Send Sync product sum algebraic diagram"
+        },
+        {
+          "id": "advanced-functions",
+          "title": "Function Pointers & Returning Closures",
+          "file": "advanced-functions.md",
+          "level": "advanced",
+          "time": "10 min",
+          "summary": "fn pointers, impl Trait, and Box<dyn Fn> return types.",
+          "keywords": "function pointer fn impl Trait return closure Box dyn Fn higher order"
+        },
+        {
+          "id": "ffi",
+          "title": "FFI: Calling C & Being Called",
+          "file": "ffi.md",
+          "level": "advanced",
+          "time": "15 min",
+          "summary": "Interoperate with C libraries and expose Rust to other languages.",
+          "keywords": "FFI extern C bindgen repr C link ABI cbindgen unsafe interop"
+        }
+      ]
+    },
+    {
+      "title": "The Standard Library, Deep",
+      "chapters": [
+        {
+          "id": "std-overview",
+          "title": "A Tour of std",
+          "file": "std-overview.md",
+          "level": "intermediate",
+          "time": "12 min",
+          "summary": "A map of the standard library and the prelude.",
+          "keywords": "std prelude core alloc modules overview standard library tour"
+        },
+        {
+          "id": "std-option-result",
+          "title": "Option & Result Methods Reference",
+          "file": "std-option-result.md",
+          "level": "intermediate",
+          "time": "16 min",
+          "summary": "Every combinator you need: map, and_then, ok_or, unwrap_or, and more.",
+          "keywords": "Option Result map and_then ok_or unwrap_or filter combinators reference"
+        },
+        {
+          "id": "std-iterator",
+          "title": "The Iterator Trait Reference",
+          "file": "std-iterator.md",
+          "level": "intermediate",
+          "time": "15 min",
+          "summary": "A complete reference to the Iterator trait's methods.",
+          "keywords": "Iterator trait methods reference adapters consumers std iter"
+        },
+        {
+          "id": "std-io",
+          "title": "std::io — Reading & Writing",
+          "file": "std-io.md",
+          "level": "intermediate",
+          "time": "14 min",
+          "summary": "Read, Write, BufReader, stdin/stdout, and error handling.",
+          "keywords": "io Read Write BufReader BufWriter stdin stdout lines bytes flush"
+        },
+        {
+          "id": "std-fs",
+          "title": "std::fs — Files & Paths",
+          "file": "std-fs.md",
+          "level": "intermediate",
+          "time": "12 min",
+          "summary": "Read and write files, walk directories, and work with paths.",
+          "keywords": "fs File read_to_string write Path PathBuf metadata directory create_dir"
+        },
+        {
+          "id": "io-streams",
+          "title": "Files, Streams & Standard I/O",
+          "file": "io-streams.md",
+          "level": "intermediate",
+          "time": "30 min",
+          "summary": "The deep, unified tour of Rust I/O: the Read/Write/BufRead/Seek stream model, buffering, stdin/stdout/stderr and locking, the filesystem, paths, error handling, io::copy pipelines, and the bridge to async — with diagrams and runnable examples.",
+          "keywords": "io stream Read Write BufRead Seek Cursor buffering BufReader BufWriter stdin stdout stderr lock flush is_terminal println eprintln io::copy empty sink repeat ErrorKind Interrupted file OpenOptions append create_new metadata permissions path PathBuf join read_dir seek SeekFrom filesystem bytes lines async tokio streams"
+        },
+        {
+          "id": "std-collections-ref",
+          "title": "std::collections Reference",
+          "file": "std-collections-ref.md",
+          "level": "intermediate",
+          "time": "13 min",
+          "summary": "A decision guide and reference for every std collection.",
+          "keywords": "collections Vec HashMap BTreeMap VecDeque HashSet BinaryHeap complexity reference"
+        },
+        {
+          "id": "std-string-str",
+          "title": "String, str & Text Types",
+          "file": "std-string-str.md",
+          "level": "intermediate",
+          "time": "13 min",
+          "summary": "Deep reference on String, str, OsString, CString, and Cow.",
+          "keywords": "String str OsString CString Cow to_string parse split trim reference"
+        },
+        {
+          "id": "std-time",
+          "title": "Time & Duration",
+          "file": "std-time.md",
+          "level": "beginner",
+          "time": "9 min",
+          "summary": "Measure elapsed time and work with Instant, Duration, SystemTime.",
+          "keywords": "Instant Duration SystemTime elapsed sleep now timing"
+        },
+        {
+          "id": "std-env-process",
+          "title": "Environment, Args & Processes",
+          "file": "std-env-process.md",
+          "level": "intermediate",
+          "time": "11 min",
+          "summary": "Read arguments and env vars, and spawn child processes.",
+          "keywords": "env args var Command process spawn exit output current_dir"
+        },
+        {
+          "id": "std-net",
+          "title": "std::net — TCP & UDP",
+          "file": "std-net.md",
+          "level": "advanced",
+          "time": "13 min",
+          "summary": "Build networked programs with TcpListener, TcpStream, and UdpSocket.",
+          "keywords": "net TcpListener TcpStream UdpSocket socket bind connect networking"
+        },
+        {
+          "id": "std-sync",
+          "title": "std::sync — Synchronization Primitives",
+          "file": "std-sync.md",
+          "level": "advanced",
+          "time": "12 min",
+          "summary": "Arc, Mutex, RwLock, Once, Barrier, and atomics in one place.",
+          "keywords": "sync Arc Mutex RwLock Once OnceLock Barrier Condvar atomic reference"
+        },
+        {
+          "id": "std-fmt",
+          "title": "Formatting: Display, Debug & format!",
+          "file": "std-fmt.md",
+          "level": "intermediate",
+          "time": "12 min",
+          "summary": "Master format strings, Display, Debug, and custom formatting.",
+          "keywords": "format println Display Debug fmt Formatter width precision alignment padding"
+        }
+      ]
+    },
+    {
+      "title": "The Crate Ecosystem",
+      "chapters": [
+        {
+          "id": "crates-overview",
+          "title": "How to Choose Crates",
+          "file": "crates-overview.md",
+          "level": "beginner",
+          "time": "9 min",
+          "summary": "Evaluate quality, popularity, and maintenance on crates.io.",
+          "keywords": "crates.io ecosystem dependencies evaluate popularity docs.rs blessed features"
+        },
+        {
+          "id": "serde",
+          "title": "serde: Serialize & Deserialize",
+          "file": "serde.md",
+          "level": "intermediate",
+          "time": "26 min",
+          "summary": "The complete serde & serde_json guide: the data-model hourglass, how the derive works, enum representations, the full serde_json API, dynamic Value, attributes, custom (de)serialization, zero-copy, streaming, and errors — with diagrams.",
+          "keywords": "serde serde_json Serialize Deserialize derive data model hourglass Serializer Deserializer Visitor attributes rename rename_all default skip flatten alias deny_unknown_fields tag content untagged enum representation to_string to_vec to_writer to_value from_str from_slice from_reader from_value Value json pointer as_str serialize_with deserialize_with with borrow zero-copy streaming StreamDeserializer error classify JSON YAML TOML bincode formats"
+        },
+        {
+          "id": "clap",
+          "title": "clap: Command-Line Parsing",
+          "file": "clap.md",
+          "level": "intermediate",
+          "time": "13 min",
+          "summary": "Build professional CLIs with derive-based argument parsing.",
+          "keywords": "clap CLI arguments derive subcommands flags options help version"
+        },
+        {
+          "id": "anyhow-thiserror",
+          "title": "anyhow & thiserror in Depth",
+          "file": "anyhow-thiserror.md",
+          "level": "intermediate",
+          "time": "12 min",
+          "summary": "The two crates that make error handling ergonomic.",
+          "keywords": "anyhow thiserror error context Result derive Error application library"
+        },
+        {
+          "id": "reqwest",
+          "title": "reqwest: HTTP Clients",
+          "file": "reqwest.md",
+          "level": "intermediate",
+          "time": "12 min",
+          "summary": "Make HTTP requests, handle JSON, and stream responses.",
+          "keywords": "reqwest http client get post json async blocking headers download"
+        },
+        {
+          "id": "axum",
+          "title": "axum: Building Web Servers",
+          "file": "axum.md",
+          "level": "advanced",
+          "time": "42 min",
+          "summary": "The complete production guide to axum: routing, extractors, responses, error handling, state, tower middleware, and how it works internally — capped with a full e-commerce admin analytics API project.",
+          "keywords": "axum web server router handler extractor tower middleware state json api rest hyper service layer IntoResponse FromRequest FromRequestParts CORS tracing timeout graceful shutdown websocket sse fallback nest merge auth api-key analytics ecommerce admin project internals lifecycle vtable"
+        },
+        {
+          "id": "actix",
+          "title": "Actix Web: Building Web Servers",
+          "file": "actix.md",
+          "level": "advanced",
+          "time": "40 min",
+          "summary": "The complete production guide to Actix Web: routing, extractors, bodies & file uploads, Responder & ResponseError, web::Data state, middleware, and the multi-worker internals — capped with the same e-commerce admin analytics API project as the axum chapter.",
+          "keywords": "actix actix-web web server app httpserver worker route scope handler extractor FromRequest web::Data Responder ResponseError HttpResponse json middleware wrap from_fn Logger cors compress multipart payload upload graceful shutdown analytics ecommerce admin project internals worker model service arbiter lifecycle"
+        },
+        {
+          "id": "tonic",
+          "title": "tonic: gRPC Services",
+          "file": "tonic.md",
+          "level": "advanced",
+          "time": "13 min",
+          "summary": "Build fast, typed, streaming gRPC services and clients with tonic.",
+          "keywords": "tonic grpc protobuf proto rpc http2 streaming service client tokio microservices"
+        },
+        {
+          "id": "sql",
+          "title": "SQL: Querying MySQL & PostgreSQL",
+          "file": "sql.md",
+          "level": "intermediate",
+          "time": "18 min",
+          "summary": "A practical SQL primer for both MySQL and PostgreSQL, with illustrations.",
+          "keywords": "sql mysql postgres postgresql select insert update delete join where group by index transaction acid ddl dml primary key foreign key"
+        },
+        {
+          "id": "sqlx",
+          "title": "sqlx & Databases",
+          "file": "sqlx.md",
+          "level": "advanced",
+          "time": "28 min",
+          "summary": "The complete sqlx guide: the pool, every query builder and fetch method explained simply, binding, FromRow, transactions, migrations, and errors — with visuals — ending in a generic CRUD handler built from enums, structs, and generics.",
+          "keywords": "sqlx database postgres mysql sqlite pool query query_as query_scalar macro fetch_one fetch_optional fetch_all fetch execute rows_affected bind parameters injection FromRow row get try_get transaction begin commit rollback migrations DATABASE_URL prepare offline error RowNotFound generic crud handler enum struct trait Repository compile-time checked async"
+        },
+        {
+          "id": "seaorm",
+          "title": "SeaORM: An Async ORM",
+          "file": "seaorm.md",
+          "level": "advanced",
+          "time": "38 min",
+          "summary": "The complete guide to the async SeaORM ORM: entities, column mapping, ActiveEnum, deep CRUD & query building, all relationship shapes, transactions, migrations, and a full e-commerce database schema project.",
+          "keywords": "seaorm sea-orm orm entity model active model activevalue set relations belongs_to has_many has_one many_to_many junction eager loading n+1 transactions ActiveEnum migrations schema foreign key index unique aggregate group by pagination stream mock raw sql async database postgres mysql sqlite ecommerce users products orders order_items categories reviews addresses"
+        },
+        {
+          "id": "regex",
+          "title": "regex: Pattern Matching on Text",
+          "file": "regex.md",
+          "level": "intermediate",
+          "time": "11 min",
+          "summary": "Fast, safe regular expressions and capture groups.",
+          "keywords": "regex Regex captures find replace named groups patterns text matching"
+        },
+        {
+          "id": "tracing",
+          "title": "tracing: Logging & Diagnostics",
+          "file": "tracing.md",
+          "level": "intermediate",
+          "time": "12 min",
+          "summary": "Structured, async-aware logging and instrumentation.",
+          "keywords": "tracing log subscriber span event instrument structured logging diagnostics"
+        },
+        {
+          "id": "publishing",
+          "title": "Publishing a Crate & Feature Flags",
+          "file": "publishing.md",
+          "level": "intermediate",
+          "time": "12 min",
+          "summary": "Publish your own crate to crates.io, and use feature flags for optional functionality.",
+          "keywords": "publish crate crates.io cargo publish semver version yank feature flags cfg optional dependency default-features library"
+        },
+        {
+          "id": "essential-crates",
+          "title": "The Essential Crates Cheat Sheet",
+          "file": "essential-crates.md",
+          "level": "beginner",
+          "time": "10 min",
+          "summary": "A curated map of the crates every Rust developer should know.",
+          "keywords": "crates cheat sheet chrono itertools rand once_cell dashmap tokio serde ecosystem"
+        }
+      ]
+    },
+    {
+      "title": "Building Real Projects",
+      "chapters": [
+        {
+          "id": "project-cli",
+          "title": "Project: A Command-Line Tool",
+          "file": "project-cli.md",
+          "level": "intermediate",
+          "time": "22 min",
+          "summary": "Build a real grep-style CLI from scratch, step by step.",
+          "keywords": "project cli grep minigrep clap file search command line build"
+        },
+        {
+          "id": "project-web",
+          "title": "Project: A Web Service",
+          "file": "project-web.md",
+          "level": "advanced",
+          "time": "26 min",
+          "summary": "Build a JSON REST API with axum, state, and a database.",
+          "keywords": "project web api axum rest json crud database async server"
+        },
+        {
+          "id": "project-wasm",
+          "title": "Project: WebAssembly in the Browser",
+          "file": "project-wasm.md",
+          "level": "advanced",
+          "time": "18 min",
+          "summary": "Compile Rust to WASM and run it on a web page.",
+          "keywords": "wasm webassembly wasm-bindgen wasm-pack browser javascript frontend"
+        },
+        {
+          "id": "project-embedded",
+          "title": "A Taste of Embedded Rust",
+          "file": "project-embedded.md",
+          "level": "advanced",
+          "time": "15 min",
+          "summary": "Blink an LED and learn no_std, the embedded way.",
+          "keywords": "embedded no_std microcontroller hal gpio bare metal cortex embedded-hal"
+        }
+      ]
+    },
+    {
+      "title": "Data Structures & Algorithms",
+      "chapters": [
+        {
+          "id": "dsa-intro",
+          "title": "Big-O & How to Think About Algorithms",
+          "file": "dsa-intro.md",
+          "level": "beginner",
+          "time": "16 min",
+          "summary": "Complexity, trade-offs, and how to reason about performance.",
+          "keywords": "big-o complexity time space asymptotic analysis algorithms data structures"
+        },
+        {
+          "id": "dsa-arrays",
+          "title": "Arrays, Vectors & Dynamic Arrays",
+          "file": "dsa-arrays.md",
+          "level": "beginner",
+          "time": "14 min",
+          "summary": "Contiguous memory, amortized growth, and cache friendliness.",
+          "keywords": "array vector dynamic array amortized capacity cache locality two pointers"
+        },
+        {
+          "id": "dsa-linked-list",
+          "title": "Linked Lists (the Hard Way)",
+          "file": "dsa-linked-list.md",
+          "level": "advanced",
+          "time": "18 min",
+          "summary": "Why linked lists fight the borrow checker, and how to build them right.",
+          "keywords": "linked list Box Option singly doubly Rc RefCell too many linked lists"
+        },
+        {
+          "id": "dsa-stack-queue",
+          "title": "Stacks & Queues",
+          "file": "dsa-stack-queue.md",
+          "level": "beginner",
+          "time": "12 min",
+          "summary": "LIFO and FIFO structures and their many uses.",
+          "keywords": "stack queue LIFO FIFO VecDeque push pop deque monotonic stack"
+        },
+        {
+          "id": "dsa-hashing",
+          "title": "Hash Tables from Scratch",
+          "file": "dsa-hashing.md",
+          "level": "intermediate",
+          "time": "16 min",
+          "summary": "How hashing, collisions, and load factors actually work.",
+          "keywords": "hash table hashing collision chaining open addressing load factor buckets"
+        },
+        {
+          "id": "dsa-trees",
+          "title": "Binary Trees & Binary Search Trees",
+          "file": "dsa-trees.md",
+          "level": "intermediate",
+          "time": "16 min",
+          "summary": "Tree traversals and ordered data with BSTs.",
+          "keywords": "binary tree BST traversal inorder preorder postorder insert search recursion"
+        },
+        {
+          "id": "dsa-balanced-trees",
+          "title": "Balanced Trees: AVL & Red-Black",
+          "file": "dsa-balanced-trees.md",
+          "level": "advanced",
+          "time": "18 min",
+          "summary": "Keep trees balanced so operations stay O(log n).",
+          "keywords": "AVL red-black tree rotation balance factor self-balancing BTreeMap"
+        },
+        {
+          "id": "dsa-heaps",
+          "title": "Heaps & Priority Queues",
+          "file": "dsa-heaps.md",
+          "level": "intermediate",
+          "time": "13 min",
+          "summary": "Binary heaps, heapify, and BinaryHeap in std.",
+          "keywords": "heap priority queue binary heap heapify sift BinaryHeap Reverse min-heap"
+        },
+        {
+          "id": "dsa-tries",
+          "title": "Tries & Prefix Trees",
+          "file": "dsa-tries.md",
+          "level": "intermediate",
+          "time": "13 min",
+          "summary": "Fast prefix lookups for autocomplete and dictionaries.",
+          "keywords": "trie prefix tree autocomplete dictionary string search radix"
+        },
+        {
+          "id": "dsa-graphs",
+          "title": "Graphs: Representation",
+          "file": "dsa-graphs.md",
+          "level": "intermediate",
+          "time": "14 min",
+          "summary": "Adjacency lists vs matrices, and modeling graphs in Rust.",
+          "keywords": "graph adjacency list matrix edges vertices directed weighted representation petgraph"
+        },
+        {
+          "id": "dsa-graph-traversal",
+          "title": "Graph Traversal: BFS & DFS",
+          "file": "dsa-graph-traversal.md",
+          "level": "intermediate",
+          "time": "15 min",
+          "summary": "Explore graphs breadth-first and depth-first.",
+          "keywords": "BFS DFS traversal queue stack visited connected components topological"
+        },
+        {
+          "id": "dsa-shortest-path",
+          "title": "Shortest Paths: Dijkstra, Bellman-Ford & A*",
+          "file": "dsa-shortest-path.md",
+          "level": "advanced",
+          "time": "18 min",
+          "summary": "Find the cheapest route through a weighted graph.",
+          "keywords": "dijkstra bellman-ford a-star shortest path weighted graph priority queue heuristic"
+        },
+        {
+          "id": "dsa-mst",
+          "title": "Minimum Spanning Trees",
+          "file": "dsa-mst.md",
+          "level": "advanced",
+          "time": "13 min",
+          "summary": "Connect everything at the lowest cost with Kruskal & Prim.",
+          "keywords": "minimum spanning tree kruskal prim union find greedy weighted graph"
+        },
+        {
+          "id": "dsa-union-find",
+          "title": "Union-Find / Disjoint Set",
+          "file": "dsa-union-find.md",
+          "level": "intermediate",
+          "time": "12 min",
+          "summary": "Track connected groups with near-constant-time operations.",
+          "keywords": "union find disjoint set path compression union by rank connectivity"
+        },
+        {
+          "id": "dsa-sorting",
+          "title": "Sorting Algorithms",
+          "file": "dsa-sorting.md",
+          "level": "intermediate",
+          "time": "18 min",
+          "summary": "Bubble, insertion, merge, quick, heap & radix — visualized.",
+          "keywords": "sorting bubble insertion selection merge quicksort heapsort radix counting stable"
+        },
+        {
+          "id": "dsa-searching",
+          "title": "Searching Algorithms",
+          "file": "dsa-searching.md",
+          "level": "beginner",
+          "time": "12 min",
+          "summary": "Linear search, binary search, and search variants.",
+          "keywords": "binary search linear search lower bound upper bound rotated array binary_search"
+        },
+        {
+          "id": "dsa-recursion",
+          "title": "Recursion & Backtracking",
+          "file": "dsa-recursion.md",
+          "level": "intermediate",
+          "time": "15 min",
+          "summary": "Solve problems by breaking them down — permutations, N-Queens.",
+          "keywords": "recursion backtracking base case permutations combinations n-queens subsets maze"
+        },
+        {
+          "id": "dsa-divide-conquer",
+          "title": "Divide & Conquer",
+          "file": "dsa-divide-conquer.md",
+          "level": "intermediate",
+          "time": "12 min",
+          "summary": "Split, solve, and combine — the pattern behind merge sort.",
+          "keywords": "divide conquer merge sort master theorem recurrence binary search quickselect"
+        },
+        {
+          "id": "dsa-greedy",
+          "title": "Greedy Algorithms",
+          "file": "dsa-greedy.md",
+          "level": "intermediate",
+          "time": "13 min",
+          "summary": "Make the locally best choice — when it works and when it fails.",
+          "keywords": "greedy interval scheduling huffman coin change activity selection exchange argument"
+        },
+        {
+          "id": "dsa-dynamic-programming",
+          "title": "Dynamic Programming",
+          "file": "dsa-dynamic-programming.md",
+          "level": "advanced",
+          "time": "20 min",
+          "summary": "Memoization, tabulation, and the classic DP problems.",
+          "keywords": "dynamic programming memoization tabulation knapsack lcs edit distance fibonacci subproblems"
+        },
+        {
+          "id": "dsa-strings",
+          "title": "String Algorithms",
+          "file": "dsa-strings.md",
+          "level": "advanced",
+          "time": "15 min",
+          "summary": "Pattern matching with KMP, Rabin-Karp, and tries.",
+          "keywords": "string algorithms KMP rabin-karp z-algorithm pattern matching hashing suffix"
+        },
+        {
+          "id": "dsa-bit-manipulation",
+          "title": "Bit Manipulation",
+          "file": "dsa-bit-manipulation.md",
+          "level": "intermediate",
+          "time": "12 min",
+          "summary": "Bitwise tricks, masks, and bit sets in Rust.",
+          "keywords": "bit manipulation bitwise mask shift xor count_ones popcount bit set flags"
+        },
+        {
+          "id": "dsa-advanced",
+          "title": "Segment Trees, Fenwick Trees & Beyond",
+          "file": "dsa-advanced.md",
+          "level": "advanced",
+          "time": "17 min",
+          "summary": "Range queries and advanced structures for competitive programming.",
+          "keywords": "segment tree fenwick binary indexed tree range query BIT lazy propagation competitive"
+        },
+        {
+          "id": "dsa-patterns",
+          "title": "Algorithm Patterns & Problem-Solving",
+          "file": "dsa-patterns.md",
+          "level": "intermediate",
+          "time": "24 min",
+          "summary": "A framework for approaching any problem plus the core reusable patterns — two pointers, sliding window, prefix sums, fast & slow pointers, binary search on the answer, backtracking, and monotonic stacks — each with triggers, runnable code, and tips.",
+          "keywords": "algorithm patterns problem solving two pointers sliding window prefix sums fast slow pointers Floyd binary search on answer monotonic predicate backtracking subsets permutations monotonic stack next greater cheat sheet interview complexity constraints recognize pattern"
+        },
+        {
+          "id": "dsa-design",
+          "title": "Designing Your Own Data Structures",
+          "file": "dsa-design.md",
+          "level": "advanced",
+          "time": "22 min",
+          "summary": "The craft of building a custom data structure: the design process (operations, complexity, representation, invariants, API), Rust-specific choices (arenas over Rc/RefCell, encapsulating invariants), and worked runnable examples — a ring buffer and an augmented min-stack.",
+          "keywords": "design data structure custom build ring buffer circular queue min stack augmentation arena index linked list invariant representation complexity API generic Iterator ownership Rc RefCell slotmap LRU cache model test encapsulation"
+        }
+      ]
+    },
+    {
+      "title": "Appendices",
+      "chapters": [
+        {
+          "id": "appendix-keywords",
+          "title": "A · Keywords",
+          "file": "appendix-keywords.md",
+          "level": "beginner",
+          "time": "6 min",
+          "summary": "Every reserved word in Rust and what it does.",
+          "keywords": "keywords reserved words reference appendix",
+          "appendix": "A"
+        },
+        {
+          "id": "appendix-operators",
+          "title": "B · Operators & Symbols",
+          "file": "appendix-operators.md",
+          "level": "beginner",
+          "time": "8 min",
+          "summary": "A reference for every operator and symbol in Rust.",
+          "keywords": "operators symbols reference appendix punctuation",
+          "appendix": "B"
+        },
+        {
+          "id": "appendix-derivable",
+          "title": "C · Derivable Traits",
+          "file": "appendix-derivable.md",
+          "level": "beginner",
+          "time": "8 min",
+          "summary": "What #[derive(...)] can generate for you, and when.",
+          "keywords": "derive Debug Clone Copy PartialEq Hash Default Ord derivable traits appendix",
+          "appendix": "C"
+        },
+        {
+          "id": "appendix-glossary",
+          "title": "D · Glossary",
+          "file": "appendix-glossary.md",
+          "level": "beginner",
+          "time": "10 min",
+          "summary": "Plain-English definitions of every Rust term used in this book.",
+          "keywords": "glossary definitions terms jargon reference appendix",
+          "appendix": "D"
+        },
+        {
+          "id": "appendix-cheatsheet",
+          "title": "E · The Rust Cheat Sheet",
+          "file": "appendix-cheatsheet.md",
+          "level": "beginner",
+          "time": "8 min",
+          "summary": "The whole language on one dense, printable page.",
+          "keywords": "cheat sheet quick reference syntax appendix summary",
+          "appendix": "E"
+        },
+        {
+          "id": "appendix-crates",
+          "title": "F · Crates You Can Use in the Playground",
+          "file": "appendix-crates.md",
+          "level": "beginner",
+          "time": "5 min",
+          "summary": "Which crates are pre-loaded on the Rust Playground so Run works without a Cargo.toml — linked to where the book teaches each.",
+          "keywords": "playground crates supported available serde serde_json rand regex itertools chrono anyhow thiserror tokio futures rayon clap tracing reqwest once_cell uuid list appendix run",
+          "appendix": "F"
+        }
+      ]
+    }
+  ]
+}

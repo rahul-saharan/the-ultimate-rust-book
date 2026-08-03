@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- After deploying, replace YOUR-DOMAIN.example with your real domain.
+     This SPA uses hash routes (#/ch/...) which search engines treat as one URL,
+     so the homepage is the canonical entry point. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://YOUR-DOMAIN.example/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>

@@ -1,0 +1,13 @@
+# Rust build artifacts from the code-verification project (not part of the site)
+tools/verify-project/target/
+tools/verify-project/Cargo.lock
+tools/verify-project/src/bin/
+
+# OS / editor cruft
+.DS_Store
+*.swp
+*.tmp
+
+# The book itself (index.html, assets/, content/, data/, toc.json) is committed —
+# it IS the hosted static site. Nothing there is generated at build time except
+# data/search-index.json, which you regenerate with: node tools/build-search-index.js
