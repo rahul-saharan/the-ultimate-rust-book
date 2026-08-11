@@ -123,7 +123,6 @@ fn main() {
   <rect x="130" y="30" width="90" height="30" class="newbox-sh"/><text x="140" y="50" class="m-sh">x = 6</text>
   <rect x="240" y="30" width="90" height="30" class="newbox-sh"/><text x="250" y="50" class="m-sh">x = 12</text>
   <text x="20" y="80" class="cap-sh">Each `let x` builds a new box. Type may change.</text>
-
   <text x="20" y="130" class="t-sh" fill="var(--blue)">mut — one binding, changed in place</text>
   <rect x="20" y="140" width="90" height="30" class="box-sh"/><text x="30" y="160" class="m-sh">x: 5→6→12</text>
   <text x="130" y="160" class="cap-sh">One box, overwritten. Type is fixed.</text>

@@ -85,7 +85,6 @@ fn main() {
   <rect x="20" y="88" width="60" height="26" class="cellq"/><text x="44" y="106" class="sqm">3</text>
   <text x="95" y="52" class="sqc">← push / pop here (top)</text>
   <text x="20" y="140" class="sqc">Add &amp; remove at the SAME end.</text>
-
   <text x="360" y="24" class="sqm" fill="var(--blue)">QUEUE (FIFO)</text>
   <rect x="360" y="60" width="50" height="26" class="cellq"/><text x="380" y="78" class="sqm">1</text>
   <rect x="410" y="60" width="50" height="26" class="cellq"/><text x="430" y="78" class="sqm">2</text>

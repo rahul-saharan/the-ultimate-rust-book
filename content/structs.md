@@ -134,7 +134,6 @@ Rust actually has three kinds of struct, each for a different situation:
   <text x="30" y="140" class="sc2">Fields have names.</text>
   <text x="30" y="158" class="sc2">The default choice for</text>
   <text x="30" y="174" class="sc2">most data.</text>
-
   <rect x="228" y="20" width="200" height="170" rx="10" class="card2"/>
   <text x="242" y="44" class="sh2" fill="var(--blue)">Tuple struct</text>
   <rect x="242" y="56" width="170" height="42" rx="6" class="accent2"/>
@@ -142,7 +141,6 @@ Rust actually has three kinds of struct, each for a different situation:
   <text x="242" y="126" class="sc2">Fields by position:</text>
   <text x="242" y="144" class="sc2">rgb.0, rgb.1, rgb.2</text>
   <text x="242" y="168" class="sc2">Good for simple wrappers.</text>
-
   <rect x="440" y="20" width="184" height="170" rx="10" class="card2"/>
   <text x="454" y="44" class="sh2" fill="var(--purple)">Unit struct</text>
   <rect x="454" y="56" width="156" height="30" rx="6" class="accent2"/>

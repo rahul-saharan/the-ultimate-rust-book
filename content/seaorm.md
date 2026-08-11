@@ -397,20 +397,17 @@ them once in the `Relation` enum and then load related data without hand-writing
   <rect x="10" y="30" width="70" height="28" class="e1"/><text x="24" y="49" class="rl-b">user</text>
   <path d="M80 44 L150 44" stroke="var(--text-mute)" stroke-width="1.4" marker-end="url(#rla)"/>
   <rect x="150" y="30" width="80" height="28" class="e2"/><text x="164" y="49" class="rl-b">profile</text>
-
   <text x="380" y="20" class="rl-t">has_many (1:N)</text>
   <rect x="380" y="30" width="70" height="28" class="e1"/><text x="394" y="49" class="rl-b">user</text>
   <path d="M450 40 L520 32" stroke="var(--text-mute)" stroke-width="1.4" marker-end="url(#rla)"/>
   <path d="M450 48 L520 56" stroke="var(--text-mute)" stroke-width="1.4" marker-end="url(#rla)"/>
   <rect x="520" y="24" width="80" height="22" class="e2"/><text x="534" y="40" class="rl-b">order</text>
   <rect x="520" y="52" width="80" height="22" class="e2"/><text x="534" y="68" class="rl-b">order</text>
-
   <text x="10" y="110" class="rl-t">belongs_to (N:1)</text>
   <rect x="10" y="120" width="80" height="28" class="e2"/><text x="24" y="139" class="rl-b">product</text>
   <path d="M90 134 L160 134" stroke="var(--text-mute)" stroke-width="1.4" marker-end="url(#rla)"/>
   <rect x="160" y="120" width="90" height="28" class="e1"/><text x="174" y="139" class="rl-b">category</text>
   <text x="10" y="168" class="rl-c">product.category_id → category.id</text>
-
   <text x="380" y="110" class="rl-t">many_to_many (N:M via junction)</text>
   <rect x="380" y="120" width="70" height="28" class="e2"/><text x="392" y="139" class="rl-b">order</text>
   <rect x="480" y="120" width="90" height="28" class="e3"/><text x="490" y="139" class="rl-b">order_item</text>
@@ -692,7 +689,6 @@ foreign keys, money columns, and multi-step transactional writes.
   <text x="514" y="368" class="er-c">id, user_id(FK)</text>
   <text x="514" y="384" class="er-c">product_id(FK)</text>
   <text x="514" y="400" class="er-c">rating, body</text>
-
   <!-- edges -->
   <path d="M290 50 L180 46" class="ln" marker-end="url(#era)"/>        <!-- users? no: categories independent; skip -->
   <path d="M440 50 L540 50" class="ln" marker-end="url(#era)"/><text x="452" y="42" class="er-l">1:N addresses</text>

@@ -21,7 +21,6 @@ A BST's operations are O(height). Balanced → height ≈ `log n` → fast. Dege
   <circle cx="130" cy="120" r="12" class="bad"/><text x="126" y="124" class="btm2">4</text>
   <circle cx="160" cy="145" r="12" class="bad"/><text x="156" y="149" class="btm2">5</text>
   <line x1="40" y1="45" x2="70" y2="70" stroke="var(--red)"/><line x1="70" y1="70" x2="100" y2="95" stroke="var(--red)"/><line x1="100" y1="95" x2="130" y2="120" stroke="var(--red)"/><line x1="130" y1="120" x2="160" y2="145" stroke="var(--red)"/>
-
   <text x="380" y="24" class="btc2" fill="var(--green)">Balanced — height log n → O(log n) ✅</text>
   <circle cx="480" cy="50" r="12" class="good"/><text x="476" y="54" class="btm2">3</text>
   <circle cx="440" cy="95" r="12" class="good"/><text x="436" y="99" class="btm2">2</text>

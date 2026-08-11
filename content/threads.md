@@ -91,7 +91,6 @@ fn main() {
   <text x="300" y="30" class="thc">main keeps working…</text>
   <line x1="440" y1="40" x2="560" y2="40" class="mainl"/>
   <text x="470" y="30" class="thc">join ← wait</text>
-
   <line x1="200" y1="100" x2="440" y2="100" class="worker"/>
   <text x="20" y="105" class="thm" fill="var(--blue)">worker</text>
   <text x="240" y="122" class="thc">runs concurrently on another core</text>

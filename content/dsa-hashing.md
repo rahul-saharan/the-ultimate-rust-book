@@ -111,7 +111,6 @@ fn main() {
   <path d="M54 71 L68 71" stroke="var(--text-mute)" stroke-width="1.2" marker-end="url(#coa)"/>
   <path d="M140 71 L148 71" stroke="var(--text-mute)" stroke-width="1.2" marker-end="url(#coa)"/>
   <text x="70" y="104" class="co-c">collisions append to the bucket's list</text>
-
   <text x="360" y="20" class="co-h" fill="var(--rust-600)">Open addressing — probe to next slot</text>
   <rect x="360" y="30" width="90" height="26" class="slot"/><text x="372" y="48" class="co-b">0 · empty</text>
   <rect x="360" y="58" width="90" height="26" class="ent"/><text x="372" y="76" class="co-b">1 · "cat"</text>

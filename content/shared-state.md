@@ -26,6 +26,7 @@ fn main() {
 
 > [!jargon] The lock guard & RAII
 > `lock()` returns a `MutexGuard`, a smart pointer that derefs to your `&mut T`. When the guard is dropped (end of scope), it **unlocks** the mutex automatically — the [RAII](#/ch/deref-drop) pattern again. You never manually "unlock"; you just let the guard fall out of scope.
+See [Cell and Lock Guards](#/ch/cell-guards) for the full MutexGuard/RwLockGuard API."
 
 ## Sharing a Mutex across threads with `Arc`
 

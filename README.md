@@ -9,7 +9,7 @@ host it on GitHub Pages, or anywhere else that serves files, in a couple of minu
 
 ## What's inside
 
-The book is 117 chapters organized into 20 parts, taking a reader from complete beginner to
+The book is 160 chapters organized into 22 parts, taking a reader from complete beginner to
 advanced:
 
 - **Getting started and foundations** — installation, Cargo, variables, types, functions, control flow.
@@ -17,12 +17,18 @@ advanced:
 - **Structuring code** — structs, enums, pattern matching, methods, modules, and packages.
 - **Everyday Rust** — collections, error handling, generics, traits, lifetimes, closures, iterators,
   testing, and smart pointers.
-- **Systems programming** — fearless concurrency, async/await, and advanced topics (unsafe, macros, FFI).
+- **Idioms & design patterns** — newtypes, builders, typestates, RAII guards, the conversion traits,
+  API guidelines, anti-patterns, and error-handling strategy.
+- **Systems programming** — fearless concurrency, async/await, and advanced topics (unsafe, macros, FFI,
+  editions, const generics).
 - **The standard library** — a deep reference to the modules you use most.
-- **The crate ecosystem** — serde, tokio, clap, axum, sqlx, reqwest, regex, tracing, and more.
+- **The crate ecosystem** — serde, tokio, clap, axum, sqlx, reqwest, regex, tracing, rand, chrono,
+  itertools, ratatui, and more.
+- **Tooling & workflow** — the Cargo toolbox, build scripts, feature flags, debugging, cross-compilation.
+- **Performance & production** — profiling, memory layout, deployment, CI/CD, and observability.
 - **Real projects** — a CLI tool, a web service, WebAssembly, and embedded Rust.
-- **A complete data-structures & algorithms course** — 23 chapters, from Big-O to graphs, dynamic
-  programming, and advanced range structures, all implemented in idiomatic Rust.
+- **A complete data-structures & algorithms course** — 29 chapters, from Big-O to graphs, dynamic
+  programming, network flow, geometry, and advanced range structures, all in idiomatic Rust.
 - **Appendices** — keywords, operators, derivable traits, a glossary, and a one-page cheat sheet.
 
 Every runnable code example is compile-checked against the real Rust compiler, so the code in the
@@ -137,8 +143,9 @@ node tools/verify-code.js            # check every chapter
 node tools/verify-code.js ownership  # check specific chapters
 ```
 
-Snippets that depend on common crates (tokio, serde, rand, regex, anyhow, thiserror, itertools) are
-compiled inside `tools/verify-project`, which mirrors the crates available on the Rust Playground.
+Snippets that depend on common crates (tokio, futures, serde, serde_json, rand, regex, anyhow,
+thiserror, itertools) are compiled inside `tools/verify-project`, which mirrors the crates available
+on the Rust Playground.
 
 ## Contributing
 

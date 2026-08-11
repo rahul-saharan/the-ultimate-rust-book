@@ -73,12 +73,10 @@ Some derives require others, reflecting mathematical relationships:
   <rect x="20" y="60" width="110" height="26" rx="6" class="dvb"/><text x="46" y="78" class="dvm">Eq</text>
   <path d="M75 46 L75 58" stroke="var(--text-mute)" stroke-width="1.5" marker-end="url(#adv)"/>
   <text x="140" y="70" class="dvc">Eq requires PartialEq</text>
-
   <rect x="330" y="20" width="120" height="26" rx="6" class="dvb"/><text x="344" y="38" class="dvm">PartialOrd</text>
   <rect x="330" y="60" width="120" height="26" rx="6" class="dvb"/><text x="356" y="78" class="dvm">Ord</text>
   <path d="M390 46 L390 58" stroke="var(--text-mute)" stroke-width="1.5" marker-end="url(#adv)"/>
   <text x="460" y="70" class="dvc">Ord requires PartialOrd + Eq</text>
-
   <rect x="20" y="110" width="110" height="26" rx="6" class="dvb"/><text x="42" y="128" class="dvm">Clone</text>
   <rect x="180" y="110" width="110" height="26" rx="6" class="dvb"/><text x="204" y="128" class="dvm">Copy</text>
   <path d="M130 123 L178 123" stroke="var(--text-mute)" stroke-width="1.5" marker-end="url(#adv)"/>

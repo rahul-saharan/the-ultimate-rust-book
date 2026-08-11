@@ -269,4 +269,4 @@ The lesson generalizes: **store the answer to your expensive query incrementally
 > 3. Design a fixed-size **LRU cache** with `get`/`put` in `O(1)` using a `HashMap` plus a `VecDeque` (or an index-based linked list) for recency order.
 > 4. Write a model test that runs 1000 random `push`/`pop`s against your `RingBuffer` and a `VecDeque`, asserting they always agree.
 
-That completes the data-structures-and-algorithms journey: you can now analyze, choose, use, *and build* the right structure for any problem.
+You can now analyze, choose, use, *and build* the right structure for any problem. Four chapters remain in this part, covering the specialist areas: **number theory**, **computational geometry**, **network flow**, and the recognition skill that ties the whole course together.

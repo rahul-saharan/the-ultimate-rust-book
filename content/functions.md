@@ -96,7 +96,6 @@ This distinction trips up newcomers, so let's make it vivid.
   <text x="36" y="96" class="mm">let y = 6;</text>
   <text x="36" y="130" class="cc">Ends in ; · evaluates to () · can't</text>
   <text x="36" y="146" class="cc">be assigned: let a = (let b = 1); ❌</text>
-
   <rect x="340" y="20" width="280" height="130" rx="10" class="expr"/>
   <text x="356" y="44" class="th" fill="var(--rust-600)">EXPRESSION — becomes a value</text>
   <text x="356" y="72" class="mm">5 + 6</text>

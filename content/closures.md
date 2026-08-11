@@ -64,14 +64,12 @@ A closure captures each variable in the *least intrusive* way that works — mir
   <text x="30" y="88" class="clm">let p = || println!("{s}");</text>
   <text x="30" y="118" class="clc">Can be called many times.</text>
   <text x="30" y="136" class="clc">Original stays usable.</text>
-
   <rect x="224" y="18" width="196" height="140" rx="10" class="c2"/>
   <text x="238" y="42" class="clh" fill="var(--blue)">Borrow &amp;mut (FnMut)</text>
   <text x="238" y="66" class="clc">Modifies a variable.</text>
   <text x="238" y="88" class="clm">let mut f = || v.push(1);</text>
   <text x="238" y="118" class="clc">Needs `mut` to call.</text>
   <text x="238" y="136" class="clc">Exclusive borrow while alive.</text>
-
   <rect x="432" y="18" width="192" height="140" rx="10" class="c3"/>
   <text x="446" y="42" class="clh" fill="var(--rust-600)">Move (FnOnce)</text>
   <text x="446" y="66" class="clc">Takes ownership.</text>

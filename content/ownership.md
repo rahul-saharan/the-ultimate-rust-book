@@ -85,7 +85,6 @@ A `String` is actually two parts working together:
   <text x="150" y="92" class="mono">len = 5</text>
   <text x="150" y="126" class="mono">capacity = 5</text>
   <text x="20" y="160" class="sub">A fixed-size, 3-word handle.</text>
-
   <text x="400" y="24" class="region" fill="var(--rust-600)">HEAP (the actual text)</text>
   <g>
     <rect x="400" y="36" width="34" height="34" class="cellh"/><text x="410" y="58" class="mono">h</text>
@@ -133,11 +132,9 @@ Rust's solution is elegant: assigning `s1` to `s2` **moves** ownership. `s1` is 
   <text x="20" y="24" class="lbl2" fill="var(--red)">s1  (moved-from — invalid) 🚫</text>
   <rect x="20" y="34" width="150" height="30" class="dead"/>
   <text x="30" y="54" class="mono2" fill="var(--red)">ptr / len / cap</text>
-
   <text x="20" y="108" class="lbl2" fill="var(--green)">s2  (the one true owner) ✅</text>
   <rect x="20" y="118" width="150" height="30" class="box"/>
   <text x="30" y="138" class="mono2">ptr ●  len=5  cap=5</text>
-
   <rect x="440" y="70" width="150" height="40" class="heap"/>
   <text x="470" y="95" class="mono2">"hello"  (heap)</text>
   <path d="M172 133 C 320 133, 340 90, 438 90" stroke="var(--rust-500)" stroke-width="2.5" fill="none" marker-end="url(#arr2)"/>
@@ -258,7 +255,6 @@ fn main() {
   <rect x="20" y="30" width="140" height="28" class="b3"/><text x="30" y="49" class="m3">ptr ●</text>
   <rect x="230" y="24" width="120" height="34" class="h3"/><text x="255" y="46" class="m3">"hello" #1</text>
   <path d="M162 44 L228 42" stroke="var(--rust-500)" stroke-width="2.5" marker-end="url(#a3)"/>
-
   <text x="20" y="108" class="l3" fill="var(--green)">s2 = s1.clone()</text>
   <rect x="20" y="116" width="140" height="28" class="b3"/><text x="30" y="135" class="m3">ptr ●</text>
   <rect x="230" y="110" width="120" height="34" class="h3"/><text x="255" y="132" class="m3">"hello" #2</text>

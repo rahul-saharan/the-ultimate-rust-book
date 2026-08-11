@@ -147,14 +147,12 @@ fn main() {
   <text x="34" y="106" class="dc">IS WRONG (a bug).</text>
   <text x="34" y="130" class="dc">e.g. impossible state,</text>
   <text x="34" y="146" class="dc">broken invariant.</text>
-
   <rect x="225" y="40" width="195" height="130" rx="10" class="b2"/>
   <text x="239" y="64" class="dm" fill="var(--rust-600)">Result&lt;T, E&gt;</text>
   <text x="239" y="90" class="dc">Failure with a REASON</text>
   <text x="239" y="106" class="dc">the caller should handle.</text>
   <text x="239" y="130" class="dc">e.g. file missing, parse</text>
   <text x="239" y="146" class="dc">failed, network error.</text>
-
   <rect x="430" y="40" width="190" height="130" rx="10" class="b3"/>
   <text x="444" y="64" class="dm" fill="var(--blue)">Option&lt;T&gt;</text>
   <text x="444" y="90" class="dc">Plain ABSENCE, no</text>

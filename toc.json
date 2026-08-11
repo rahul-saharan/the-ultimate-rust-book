@@ -10,7 +10,7 @@
           "title": "Welcome & How to Use This Book",
           "file": "welcome.md",
           "level": "beginner",
-          "time": "6 min",
+          "time": "12 min",
           "summary": "What Rust is, why it matters, and how to get the most out of this book.",
           "keywords": "introduction why rust safety performance foreword guide"
         },
@@ -19,7 +19,7 @@
           "title": "Installing Rust & Your Toolbox",
           "file": "installation.md",
           "level": "beginner",
-          "time": "8 min",
+          "time": "16 min",
           "summary": "Install rustup, cargo, and set up a great editor for Rust.",
           "keywords": "rustup install cargo toolchain vscode rust-analyzer setup windows mac linux"
         },
@@ -28,7 +28,7 @@
           "title": "Hello, World! and Hello, Cargo",
           "file": "hello-world.md",
           "level": "beginner",
-          "time": "10 min",
+          "time": "12 min",
           "summary": "Write, compile, and run your very first Rust programs.",
           "keywords": "hello world println main compile rustc first program"
         },
@@ -37,7 +37,7 @@
           "title": "Cargo: Build Tool & Package Manager",
           "file": "cargo.md",
           "level": "beginner",
-          "time": "12 min",
+          "time": "14 min",
           "summary": "Master Cargo: building, running, testing, dependencies, and Cargo.toml.",
           "keywords": "cargo build run test crates.io dependencies Cargo.toml manifest profiles"
         }
@@ -78,7 +78,7 @@
           "title": "Comments & Documentation",
           "file": "comments.md",
           "level": "beginner",
-          "time": "7 min",
+          "time": "12 min",
           "summary": "Line, block, and doc comments — plus cargo doc.",
           "keywords": "comments doc comments /// //! rustdoc cargo doc documentation"
         },
@@ -192,7 +192,7 @@
           "title": "Packages, Crates & the Module Tree",
           "file": "packages-crates.md",
           "level": "intermediate",
-          "time": "11 min",
+          "time": "12 min",
           "summary": "How Rust projects are structured, from binary to library crates.",
           "keywords": "package crate binary library crate root module tree bin lib"
         },
@@ -201,7 +201,7 @@
           "title": "Cargo Workspaces",
           "file": "workspaces.md",
           "level": "intermediate",
-          "time": "10 min",
+          "time": "18 min",
           "summary": "Manage many related crates in one repository.",
           "keywords": "workspace members shared dependencies monorepo cargo"
         }
@@ -215,36 +215,45 @@
           "title": "Vectors",
           "file": "vectors.md",
           "level": "beginner",
-          "time": "13 min",
-          "summary": "Growable arrays — the workhorse collection of Rust.",
-          "keywords": "Vec push pop index iterate capacity growable array with_capacity"
+          "time": "22 min",
+          "summary": "Vec<T>: growable lists, with full method tables for creating, accessing, mutating, searching and slicing.",
+          "keywords": "vec vector push pop insert remove swap_remove drain retain dedup truncate extend append split_off sort sort_unstable binary_search chunks windows slice capacity with_capacity reserve shrink_to_fit grid"
         },
         {
           "id": "strings",
           "title": "Strings & Text",
           "file": "strings.md",
           "level": "intermediate",
-          "time": "16 min",
+          "time": "24 min",
           "summary": "String vs &str, UTF-8, and why indexing a string is tricky.",
-          "keywords": "String str UTF-8 bytes chars graphemes push_str format encoding"
+          "keywords": "string str utf8 chars bytes char_indices len slice format push_str find split split_once split_whitespace lines trim replace parse case cow raw string bytes"
         },
         {
           "id": "hashmaps",
           "title": "Hash Maps",
           "file": "hashmaps.md",
           "level": "beginner",
-          "time": "13 min",
+          "time": "22 min",
           "summary": "Key-value storage with HashMap, entry API, and hashing.",
-          "keywords": "HashMap entry keys values insert get hashing BTreeMap"
+          "keywords": "hashmap key value insert get entry or_insert or_default and_modify remove retain keys values hash eq collision siphash hasher multimap"
         },
         {
           "id": "other-collections",
           "title": "VecDeque, BTreeMap, HashSet & Friends",
           "file": "other-collections.md",
           "level": "intermediate",
-          "time": "12 min",
-          "summary": "The rest of std::collections and when to reach for each.",
+          "time": "24 min",
+          "summary": "The rest of std::collections — VecDeque, BTreeMap/Set, HashSet, BinaryHeap — with full method tables and when to reach for each.",
           "keywords": "VecDeque BTreeMap BTreeSet HashSet BinaryHeap LinkedList collections"
+        },
+        {
+          "id": "collections-recipes",
+          "title": "Collection Recipes & Idioms",
+          "file": "collections-recipes.md",
+          "level": "intermediate",
+          "time": "20 min",
+          "summary": "The dozen collection patterns you actually write: counting, grouping, dedup, top-K, indexing and batching.",
+          "keywords": "recipes idioms count group dedup topk multimap invert partition unzip flatten scan windows chunks index cache merge entry fold collect"
         }
       ]
     },
@@ -256,7 +265,7 @@
           "title": "Unrecoverable Errors with panic!",
           "file": "panic.md",
           "level": "beginner",
-          "time": "9 min",
+          "time": "14 min",
           "summary": "When and why a Rust program aborts, plus backtraces.",
           "keywords": "panic unwind abort backtrace RUST_BACKTRACE unreachable assert"
         },
@@ -274,7 +283,7 @@
           "title": "The ? Operator & Error Propagation",
           "file": "question-mark.md",
           "level": "intermediate",
-          "time": "12 min",
+          "time": "14 min",
           "summary": "Propagate errors cleanly with ? and the From trait.",
           "keywords": "question mark operator propagation From conversion Box dyn Error main"
         },
@@ -388,7 +397,7 @@
           "title": "Test Organization & Integration Tests",
           "file": "test-organization.md",
           "level": "intermediate",
-          "time": "11 min",
+          "time": "12 min",
           "summary": "Unit vs integration tests, test modules, and fixtures.",
           "keywords": "integration tests tests directory common module test organization doc tests"
         },
@@ -406,7 +415,7 @@
           "title": "Benchmarking & Profiling",
           "file": "benchmarking.md",
           "level": "advanced",
-          "time": "12 min",
+          "time": "8 min",
           "summary": "Measure performance with criterion and find hot spots.",
           "keywords": "benchmark criterion profiling flamegraph perf black_box optimization"
         },
@@ -415,7 +424,7 @@
           "title": "Clippy, rustfmt & Lints",
           "file": "clippy-fmt.md",
           "level": "beginner",
-          "time": "9 min",
+          "time": "12 min",
           "summary": "Keep your code clean and idiomatic automatically.",
           "keywords": "clippy rustfmt lint format idiomatic allow deny warn attributes"
         }
@@ -429,7 +438,7 @@
           "title": "Box<T>: Heap Allocation",
           "file": "box.md",
           "level": "intermediate",
-          "time": "11 min",
+          "time": "24 min",
           "summary": "The simplest smart pointer — own data on the heap.",
           "keywords": "Box heap recursive types dyn trait indirection sized"
         },
@@ -438,7 +447,7 @@
           "title": "Rc, Arc & Shared Ownership",
           "file": "rc-arc.md",
           "level": "intermediate",
-          "time": "14 min",
+          "time": "22 min",
           "summary": "Multiple owners of the same data via reference counting.",
           "keywords": "Rc Arc reference counting shared ownership clone strong count thread safe"
         },
@@ -447,7 +456,7 @@
           "title": "RefCell & Interior Mutability",
           "file": "refcell.md",
           "level": "advanced",
-          "time": "14 min",
+          "time": "20 min",
           "summary": "Mutate data through a shared reference — safely, at runtime.",
           "keywords": "RefCell Cell interior mutability borrow_mut runtime borrow check panic"
         },
@@ -456,18 +465,86 @@
           "title": "Deref & Drop",
           "file": "deref-drop.md",
           "level": "advanced",
-          "time": "12 min",
+          "time": "26 min",
           "summary": "Customize dereferencing and cleanup for your own smart pointers.",
           "keywords": "Deref DerefMut Drop deref coercion RAII cleanup destructor"
+        },
+        {
+          "id": "cell-guards",
+          "title": "Cell and Lock Guards",
+          "file": "cell-guards.md",
+          "level": "intermediate",
+          "time": "20 min",
+          "summary": "Learn Cell<T> for lightweight interior mutability and the MutexGuard/RwLock guard types that make shared mutation safe across threads.",
+          "keywords": "cell mutex mutexguard rwlock rwlockreadguard rwlockwriteguard interior mutability guard deref drop lock poison poisoning poisonerror into_inner replace take get set arc thread deadlock critical section reentrant try_lock try_read try_write refcell"
         },
         {
           "id": "weak-cycles",
           "title": "Weak & Breaking Reference Cycles",
           "file": "weak-cycles.md",
           "level": "advanced",
-          "time": "12 min",
+          "time": "20 min",
           "summary": "Avoid memory leaks from cyclic Rc graphs with Weak.",
           "keywords": "Weak reference cycle memory leak upgrade downgrade parent child tree"
+        },
+        {
+          "id": "custom-smart-pointer",
+          "title": "Building Your Own Smart Pointer",
+          "file": "custom-smart-pointer.md",
+          "level": "intermediate",
+          "time": "6 min",
+          "summary": "Why smart pointers exist, and the three pieces you write to build one of your own: a struct that owns, Deref for access, Drop for release.",
+          "keywords": "custom smart pointer build your own deref derefmut drop guard raii pool pooled buffer option take mem::take resource release close guard pattern why smart pointers three parts"
+        }
+      ]
+    },
+    {
+      "title": "Idioms & Design Patterns",
+      "chapters": [
+        {
+          "id": "conversions",
+          "title": "Conversions: From, Into, AsRef & Cow",
+          "file": "conversions.md",
+          "level": "intermediate",
+          "time": "20 min",
+          "summary": "The conversion trait family — which one to implement, which one to accept, and what each costs.",
+          "keywords": "from into tryfrom tryinto fromstr parse asref borrow toowned cow clone-on-write as to into naming convention orphan"
+        },
+        {
+          "id": "idioms-patterns",
+          "title": "Rust Design Patterns",
+          "file": "idioms-patterns.md",
+          "level": "intermediate",
+          "time": "22 min",
+          "summary": "Newtype, builder, typestate, RAII guards, extension traits and strategy — the patterns Rust programmers actually use.",
+          "keywords": "newtype builder typestate phantomdata raii guard drop extension trait ext strategy static dynamic dispatch parse dont validate orphan rule"
+        },
+        {
+          "id": "api-design",
+          "title": "API Design Guidelines",
+          "file": "api-design.md",
+          "level": "advanced",
+          "time": "24 min",
+          "summary": "Naming, signatures, derives, future-proofing and semver — the conventions that make a library feel Rusty.",
+          "keywords": "api guidelines naming as to into get must_use non_exhaustive sealed trait derive semver breaking change docs missing_docs doctest illegal states"
+        },
+        {
+          "id": "anti-patterns",
+          "title": "Anti-Patterns & How to Fix Them",
+          "file": "anti-patterns.md",
+          "level": "intermediate",
+          "time": "22 min",
+          "summary": "The eight habits that make Rust painful — unwrap everywhere, reflex cloning, Rc<RefCell> soup — and the fix for each.",
+          "keywords": "antipattern unwrap expect clone rc refcell arena stringly typed result string premature generics deref abuse match arms modules pub crate"
+        },
+        {
+          "id": "error-strategy",
+          "title": "Error Handling Strategy",
+          "file": "error-strategy.md",
+          "level": "advanced",
+          "time": "20 min",
+          "summary": "Which error type belongs where: typed enums for libraries, anyhow for applications, and where to draw the panic line.",
+          "keywords": "error strategy thiserror anyhow context with_context bail ensure source downcast library application panic result classification log once boundary"
         }
       ]
     },
@@ -654,6 +731,33 @@
           "time": "15 min",
           "summary": "Interoperate with C libraries and expose Rust to other languages.",
           "keywords": "FFI extern C bindgen repr C link ABI cbindgen unsafe interop"
+        },
+        {
+          "id": "editions",
+          "title": "Editions: 2015 to 2024",
+          "file": "editions.md",
+          "level": "intermediate",
+          "time": "18 min",
+          "summary": "What an edition is, what changed in 2018/2021/2024, and how to migrate with cargo fix.",
+          "keywords": "edition 2015 2018 2021 2024 migration cargo fix edition-idioms dyn trait extern crate module system disjoint closure capture intoiterator array unsafe extern static mut rpit temporary scope gen resolver v3 style_edition msrv"
+        },
+        {
+          "id": "const-generics",
+          "title": "Const Generics & Compile-Time Evaluation",
+          "file": "const-generics.md",
+          "level": "advanced",
+          "time": "22 min",
+          "summary": "Generics over values, dimension-safe matrices, const fn and const evaluation, and the stable limits.",
+          "keywords": "const generics const fn const eval compile time array length matrix dimension monomorphization const assert static_assertions heapless arrayvec generic_const_exprs inline const static vs const lookup table"
+        },
+        {
+          "id": "modern-syntax",
+          "title": "Modern Syntax: let-else, let-chains & More",
+          "file": "modern-syntax.md",
+          "level": "intermediate",
+          "time": "20 min",
+          "summary": "The recent features that quietly improve everyday code — let-else, let-chains, matches!, labeled blocks, RPITIT and async fn in traits.",
+          "keywords": "let else let chains matches macro labeled block break value rpitit impl trait return position trait async fn in trait afit gat inline format args is_some_and is_none_or inspect inline const msrv stabilization version"
         }
       ]
     },
@@ -719,8 +823,8 @@
           "title": "std::collections Reference",
           "file": "std-collections-ref.md",
           "level": "intermediate",
-          "time": "13 min",
-          "summary": "A decision guide and reference for every std collection.",
+          "time": "20 min",
+          "summary": "The cross-collection decision guide: Big-O, memory cost, the shared method matrix, and hashers.",
           "keywords": "collections Vec HashMap BTreeMap VecDeque HashSet BinaryHeap complexity reference"
         },
         {
@@ -900,6 +1004,69 @@
           "keywords": "tracing log subscriber span event instrument structured logging diagnostics"
         },
         {
+          "id": "rand-crate",
+          "title": "rand: Random Numbers",
+          "file": "rand-crate.md",
+          "level": "beginner",
+          "time": "20 min",
+          "summary": "Generating random values, shuffling and sampling, seeded reproducibility, distributions, and which generators are safe for secrets.",
+          "keywords": "rand random thread_rng gen gen_range gen_bool choose choose_multiple choose_weighted shuffle partial_shuffle seed seedable stdrng smallrng osrng uniform distribution bernoulli alphanumeric rand_distr normal lognormal cryptographic csprng"
+        },
+        {
+          "id": "datetime",
+          "title": "Dates & Times: chrono and time",
+          "file": "datetime.md",
+          "level": "intermediate",
+          "time": "22 min",
+          "summary": "Instant vs SystemTime, chrono's naive and aware types, formatting and parsing, time zones and DST, and storing UTC.",
+          "keywords": "chrono time jiff datetime naivedate naivedatetime utc local timezone chrono-tz dst ambiguous localresult rfc3339 iso8601 strftime format parse duration timedelta months timestamptz serde clock injection"
+        },
+        {
+          "id": "itertools",
+          "title": "itertools: The Adapters std Forgot",
+          "file": "itertools.md",
+          "level": "intermediate",
+          "time": "22 min",
+          "summary": "counts, into_group_map, unique, sorted, tuple_windows, izip!, combinatorics and process_results.",
+          "keywords": "itertools counts into_group_map group_map_by unique unique_by chunk_by dedup sorted sorted_by_key k_smallest minmax position_max tuple_windows tuples cartesian_product izip interleave zip_longest permutations combinations powerset chunks process_results exactly_one fold_while with_position format join tee peeking_take_while"
+        },
+        {
+          "id": "lazy-statics",
+          "title": "OnceLock, LazyLock & Global State",
+          "file": "lazy-statics.md",
+          "level": "intermediate",
+          "time": "22 min",
+          "summary": "Safe globals: LazyLock, OnceLock, atomics, Mutex statics, thread_local! and the single-threaded Cell family.",
+          "keywords": "oncelock lazylock once_cell lazy_static static mut global state atomic mutex rwlock thread_local task_local cell refcell oncecell lazycell get_or_init set force interior mutability dashmap"
+        },
+        {
+          "id": "parsing",
+          "title": "Parsing: nom, winnow & pest",
+          "file": "parsing.md",
+          "level": "advanced",
+          "time": "24 min",
+          "summary": "When to hand-roll, recursive descent with precedence, parser combinators with nom/winnow, and PEG grammars with pest.",
+          "keywords": "parsing parser combinator nom winnow pest lalrpop chumsky logos recursive descent precedence grammar peg alt tag delimited many0 separated_list map_res IResult split_once tokenizer error messages line column"
+        },
+        {
+          "id": "auth-security",
+          "title": "Authentication & Security",
+          "file": "auth-security.md",
+          "level": "advanced",
+          "time": "24 min",
+          "summary": "Password hashing with Argon2, constant-time comparison, JWTs, HMAC, AEAD encryption and handling secrets in memory.",
+          "keywords": "security authentication password hash argon2 bcrypt scrypt salt phc constant time subtle ct_eq timing attack jwt jsonwebtoken claims exp algorithm confusion hmac sha2 blake3 aes-gcm chacha20poly1305 nonce reuse rustls secrecy zeroize redact debug leak cargo deny"
+        },
+        {
+          "id": "ratatui",
+          "title": "ratatui: Terminal User Interfaces",
+          "file": "ratatui.md",
+          "level": "intermediate",
+          "time": "22 min",
+          "summary": "Immediate-mode TUIs: the draw loop, constraint layout, state machines, popups, and not blocking the render loop.",
+          "keywords": "ratatui tui terminal user interface crossterm raw mode alternate screen panic hook layout constraint length min percentage block borders paragraph list table gauge chart sparkline stateful widget liststate clear popup immediate mode event poll keyeventkind indicatif dialoguer comfy-table"
+        },
+        {
           "id": "publishing",
           "title": "Publishing a Crate & Feature Flags",
           "file": "publishing.md",
@@ -916,6 +1083,106 @@
           "time": "10 min",
           "summary": "A curated map of the crates every Rust developer should know.",
           "keywords": "crates cheat sheet chrono itertools rand once_cell dashmap tokio serde ecosystem"
+        }
+      ]
+    },
+    {
+      "title": "Tooling & Workflow",
+      "chapters": [
+        {
+          "id": "cargo-deep",
+          "title": "The Cargo Toolbox",
+          "file": "cargo-deep.md",
+          "level": "intermediate",
+          "time": "26 min",
+          "summary": "Build profiles, the subcommands worth installing, config.toml, dependency auditing and toolchain pinning.",
+          "keywords": "cargo profile opt-level lto codegen-units strip panic abort nextest expand watch audit deny machete bloat hack semver-checks tree config.toml alias mold linker rust-toolchain msrv rust-version publish package timings"
+        },
+        {
+          "id": "build-scripts",
+          "title": "Build Scripts: build.rs",
+          "file": "build-scripts.md",
+          "level": "advanced",
+          "time": "20 min",
+          "summary": "How build.rs works, the cargo:: instruction set, generating code into OUT_DIR, and linking native libraries.",
+          "keywords": "build.rs buildscript out_dir rerun-if-changed rustc-env rustc-cfg rustc-link-lib include generated code cc pkg-config bindgen cargo_cfg_target_os manifest_dir codegen"
+        },
+        {
+          "id": "conditional-compilation",
+          "title": "Conditional Compilation & Features",
+          "file": "conditional-compilation.md",
+          "level": "intermediate",
+          "time": "22 min",
+          "summary": "cfg, cfg_attr and Cargo features — including feature unification and why features must be additive.",
+          "keywords": "cfg cfg_attr feature flags target_os target_arch target_family debug_assertions test doc all any not unification additive dep: no-default-features all-features docsrs doc_cfg platform module"
+        },
+        {
+          "id": "debugging",
+          "title": "Debugging Rust",
+          "file": "debugging.md",
+          "level": "intermediate",
+          "time": "22 min",
+          "summary": "From dbg! and backtraces up to rust-gdb, Miri and tokio-console — the whole debugging ladder.",
+          "keywords": "debug dbg macro println eprintln backtrace rust_backtrace panic hook catch_unwind nocapture assert_eq pretty_assertions rust-gdb rust-lldb breakpoint watchpoint vscode launch.json miri sanitizer asan tsan valgrind tokio-console cargo expand type_name"
+        },
+        {
+          "id": "cross-compilation",
+          "title": "Cross-Compilation & Targets",
+          "file": "cross-compilation.md",
+          "level": "advanced",
+          "time": "22 min",
+          "summary": "Target triples, getting past the linker with zigbuild or cross, static musl binaries, portable code and a taste of no_std.",
+          "keywords": "cross compilation target triple rustup target add linker zigbuild cross docker musl static binary scratch rustls openssl endianness to_be_bytes path join no_std core alloc panic_handler ci matrix tier"
+        }
+      ]
+    },
+    {
+      "title": "Performance & Production",
+      "chapters": [
+        {
+          "id": "optimization",
+          "title": "Optimization: Finding What's Slow",
+          "file": "optimization.md",
+          "level": "advanced",
+          "time": "26 min",
+          "summary": "The measure-profile-fix loop, criterion and black_box, reading flame graphs, and the four usual culprits.",
+          "keywords": "optimization performance benchmark criterion black_box flamegraph samply perf profiling allocation hot loop bounds check elision dynamic dispatch monomorphization lto target-cpu pgo mimalloc rayon amdahl"
+        },
+        {
+          "id": "memory-layout",
+          "title": "Memory Layout & Representation",
+          "file": "memory-layout.md",
+          "level": "advanced",
+          "time": "24 min",
+          "summary": "Size, alignment and padding; why Rust reorders your fields; repr(C/packed/align/transparent); and the niche optimization.",
+          "keywords": "memory layout size_of align_of padding alignment repr c packed transparent align field reordering niche optimization nonzero option box enum discriminant zero sized type false sharing cache line struct of arrays"
+        },
+        {
+          "id": "deployment",
+          "title": "Deployment & Binary Size",
+          "file": "deployment.md",
+          "level": "intermediate",
+          "time": "24 min",
+          "summary": "Docker layer caching with cargo-chef, distroless and static musl images, shrinking binaries, systemd, and graceful shutdown.",
+          "keywords": "deployment docker multistage cargo-chef layer cache distroless scratch alpine musl static binary glibc version ca certificates strip lto opt-level z cargo bloat upx systemd unit hardening sigterm graceful shutdown config env secrets"
+        },
+        {
+          "id": "ci-cd",
+          "title": "CI/CD for Rust",
+          "file": "ci-cd.md",
+          "level": "intermediate",
+          "time": "24 min",
+          "summary": "A pipeline worth copying, making Rust CI fast with rust-cache, Clippy as a bug-finder, and tag-driven releases.",
+          "keywords": "ci cd github actions workflow fmt check clippy deny warnings nextest rust-cache concurrency cancel-in-progress msrv coverage llvm-cov matrix release cargo-dist release-plz dependabot cargo deny schedule flaky tests lints table"
+        },
+        {
+          "id": "observability",
+          "title": "Observability in Production",
+          "file": "observability.md",
+          "level": "advanced",
+          "time": "24 min",
+          "summary": "Logs, metrics and traces with tracing and OpenTelemetry — structured fields, cardinality, percentiles and health checks.",
+          "keywords": "observability tracing instrument span structured logging json rust_log envfilter metrics counter gauge histogram prometheus cardinality percentile p99 golden signals opentelemetry otlp jaeger sampling correlation id health check liveness readiness"
         }
       ]
     },
@@ -1187,6 +1454,42 @@
           "time": "22 min",
           "summary": "The craft of building a custom data structure: the design process (operations, complexity, representation, invariants, API), Rust-specific choices (arenas over Rc/RefCell, encapsulating invariants), and worked runnable examples — a ring buffer and an augmented min-stack.",
           "keywords": "design data structure custom build ring buffer circular queue min stack augmentation arena index linked list invariant representation complexity API generic Iterator ownership Rc RefCell slotmap LRU cache model test encapsulation"
+        },
+        {
+          "id": "dsa-math",
+          "title": "Number Theory & Math Algorithms",
+          "file": "dsa-math.md",
+          "level": "intermediate",
+          "time": "24 min",
+          "summary": "GCD and LCM, prime sieves, modular arithmetic, fast exponentiation and combinatorics — with the overflow handling textbooks omit.",
+          "keywords": "number theory gcd lcm euclid extended euclid sieve eratosthenes prime primality trial division miller rabin factorization modular arithmetic mod inverse fermat pow_mod exponentiation squaring binomial coefficient factorial pascal combinatorics catalan overflow checked_add rem_euclid isqrt"
+        },
+        {
+          "id": "dsa-geometry",
+          "title": "Computational Geometry",
+          "file": "dsa-geometry.md",
+          "level": "advanced",
+          "time": "24 min",
+          "summary": "The cross product as the one primitive: orientation, area, convex hull, point-in-polygon, segment intersection and closest pair.",
+          "keywords": "computational geometry point vector cross product dot product orientation ccw clockwise collinear epsilon floating point convex hull andrew monotone chain shoelace signed area winding ray casting point in polygon segment intersection closest pair divide conquer rotating calipers delaunay"
+        },
+        {
+          "id": "dsa-flow",
+          "title": "Network Flow & Matching",
+          "file": "dsa-flow.md",
+          "level": "advanced",
+          "time": "22 min",
+          "summary": "Max flow, residual graphs, min cut, bipartite matching, and how to recognize the many problems that reduce to flow.",
+          "keywords": "network flow max flow min cut residual graph augmenting path ford fulkerson edmonds karp dinic push relabel bipartite matching kuhn hopcroft karp konig node splitting super source sink disjoint paths min cost max flow hungarian assignment problem"
+        },
+        {
+          "id": "dsa-interview",
+          "title": "Interview Preparation",
+          "file": "dsa-interview.md",
+          "level": "intermediate",
+          "time": "26 min",
+          "summary": "The recognition table, the four patterns worth drilling, Rust-specific interview notes, and how to approach an unfamiliar problem.",
+          "keywords": "interview preparation recognition pattern two pointers sliding window monotonic stack binary search on answer feasible predicate amortized kadane largest rectangle next greater brute force edge cases empty overflow study plan complexity cheat sheet vec arena option instead of -1 reverse min heap"
         }
       ]
     },

@@ -130,5 +130,5 @@ The older **`log`** crate (with `env_logger`) is simpler and fine for basic comm
 > 3. Run with `RUST_LOG=debug` vs `RUST_LOG=info` and observe the difference in verbosity.
 
 You can build, store, observe, and communicate. Once you've made something worth sharing, the next
-chapter shows how to **publish it as a crate** — and how feature flags let users pay only for what
-they use.
+chapters cover the utility crates you'll reach for constantly — starting with the one `std`
+deliberately leaves out: **random numbers**.

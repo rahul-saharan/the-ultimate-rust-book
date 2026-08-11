@@ -22,7 +22,6 @@ Threads are great for using many CPU cores. But a different problem dominates mo
   <text x="20" y="46" class="asc">T1</text><rect x="50" y="36" width="40" height="14" class="work"/><rect x="90" y="36" width="180" height="14" class="wait"/><rect x="270" y="36" width="40" height="14" class="work"/>
   <text x="20" y="70" class="asc">T2</text><rect x="50" y="60" width="40" height="14" class="work"/><rect x="90" y="60" width="180" height="14" class="wait"/><rect x="270" y="60" width="40" height="14" class="work"/>
   <text x="330" y="56" class="asc">grey = thread blocked, doing nothing 😴</text>
-
   <text x="20" y="120" class="ash" fill="var(--green)">Async (one thread, many tasks) — always busy:</text>
   <text x="20" y="142" class="asc">T1</text>
   <rect x="50" y="132" width="40" height="14" class="work"/>

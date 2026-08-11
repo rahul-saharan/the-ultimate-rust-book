@@ -66,10 +66,47 @@ criterion_group!(benches, bench_fib);
 criterion_main!(benches);
 ```
 
-Run it with `cargo bench`. Criterion prints timing with confidence intervals and, on later runs, tells you whether your change made things faster or slower.
+Run it with `cargo bench`. Criterion prints timing with confidence intervals and, on later runs, tells you whether your change made things faster or slower:
+
+```text
+fib 20                  time:   [8.1234 µs 8.1567 µs 8.1923 µs]
+                        change: [-2.3421% -1.0234% +0.3521%] (p = 0.12 > 0.05)
+                        No change in performance detected.
+```
+
+The three numbers in brackets are a confidence interval, not one lucky sample — read the middle one as "the answer" and the spread as "how sure we are." The `change:` line only appears after a first run, comparing against the saved baseline; Criterion's own statistics (that `p = 0.12`) decide whether a difference is real or just noise, which is exactly the judgment a single `Instant` reading can't make.
 
 > [!key] Always wrap inputs in `black_box`
 > `black_box(x)` is a function that hands `x` back but hides its value from the optimizer. Without it, the compiler may notice your benchmark's result is constant and **optimize the entire computation away**, giving a meaningless "0 nanoseconds." `black_box` forces the code to actually run. It's the single most important tool for honest benchmarks.
+
+<figure class="diagram">
+<svg viewBox="0 0 640 190" role="img" aria-label="Without black_box the optimizer sees the result is unused and deletes the whole computation at compile time; with black_box it is forced to actually run" >
+  <style>
+    .bx-h { font: 700 12px var(--font-sans); }
+    .bx-m { font: 600 11px var(--font-mono); fill: var(--text); }
+    .bx-c { font: 10.5px var(--font-sans); fill: var(--text-mute); }
+    .bx-bad { fill: var(--red-soft); stroke: var(--red); stroke-width: 1.5; }
+    .bx-good { fill: var(--green-soft); stroke: var(--green); stroke-width: 1.5; }
+    .bx-code { fill: var(--surface-2); stroke: var(--border-strong); stroke-width: 1.3; }
+  </style>
+  <text x="20" y="18" class="bx-h" fill="var(--red)">without black_box</text>
+  <rect x="20" y="28" width="280" height="40" rx="4" class="bx-code"/>
+  <text x="30" y="52" class="bx-m">b.iter(|| fibonacci(20))</text>
+  <rect x="20" y="78" width="280" height="34" rx="4" class="bx-bad"/>
+  <text x="30" y="99" class="bx-c">compiler proves the result is unused →</text>
+  <rect x="20" y="116" width="280" height="34" rx="4" class="bx-bad"/>
+  <text x="30" y="137" class="bx-c">deletes the call entirely → reports ~0ns</text>
+  <text x="340" y="18" class="bx-h" fill="var(--green)">with black_box</text>
+  <rect x="340" y="28" width="280" height="40" rx="4" class="bx-code"/>
+  <text x="350" y="52" class="bx-m">b.iter(|| fibonacci(black_box(20)))</text>
+  <rect x="340" y="78" width="280" height="34" rx="4" class="bx-good"/>
+  <text x="350" y="99" class="bx-c">optimizer must assume the value escapes →</text>
+  <rect x="340" y="116" width="280" height="34" rx="4" class="bx-good"/>
+  <text x="350" y="137" class="bx-c">the real computation runs → an honest number</text>
+  <text x="20" y="170" class="bx-c">A benchmark reporting an impossibly fast result — a handful of picoseconds — is almost always this exact bug.</text>
+</svg>
+<figcaption><code>black_box</code> is an opaque barrier the optimizer can't see through — it stops your benchmark from measuring nothing.</figcaption>
+</figure>
 
 ## Finding bottlenecks with a profiler
 
@@ -95,6 +132,9 @@ cargo flamegraph --bin my_app   # produces flamegraph.svg
 ```
 
 Other great tools: `perf` (Linux), `samply` (cross-platform, browser UI), and `hyperfine` for timing whole command-line runs.
+
+> [!note] This chapter is the quick start; a full chapter goes deeper
+> For reading flame graphs properly, the four usual culprits behind slow Rust code, and compiler-level wins like LTO and PGO, see [Optimization: Finding What's Slow](#/ch/optimization). This chapter is the everyday toolkit; that one is the deep dive.
 
 > [!best] The performance workflow
 > 1. **Make it work.** Correct first; never optimize broken code.

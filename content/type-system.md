@@ -116,7 +116,6 @@ The reason DSTs work at all is that the pointer to them carries the missing size
   <rect x="200" y="14" width="90" height="34" class="fp-ptr"/><text x="215" y="36" class="fp-l">ptr</text>
   <path d="M290 31 L400 31" stroke="var(--text-mute)" stroke-width="1.5" marker-end="url(#fpa)"/>
   <rect x="400" y="14" width="70" height="34" class="fp-data"/><text x="416" y="36" class="fp-l">42</text>
-
   <text x="10" y="130" class="fp-l">&amp;[u8] / &amp;str</text>
   <text x="10" y="148" class="fp-s">fat pointer — address + length (2 words)</text>
   <rect x="200" y="114" width="90" height="34" class="fp-ptr"/><text x="215" y="136" class="fp-l">ptr</text>
@@ -124,7 +123,6 @@ The reason DSTs work at all is that the pointer to them carries the missing size
   <path d="M245 148 L245 176 L400 176 L400 162" stroke="var(--text-mute)" stroke-width="1.5" fill="none" marker-end="url(#fpa)"/>
   <rect x="400" y="162" width="200" height="34" class="fp-data"/>
   <text x="414" y="184" class="fp-l">[ b0 b1 b2 b3 ]</text>
-
   <text x="10" y="248" class="fp-l">&amp;dyn Trait</text>
   <text x="10" y="266" class="fp-s">fat pointer — data + vtable (2 words)</text>
   <rect x="200" y="232" width="90" height="34" class="fp-ptr"/><text x="214" y="254" class="fp-l">data</text>
@@ -236,7 +234,6 @@ The atoms of the language: each holds one indivisible value, lives on the stack,
   <rect x="230" y="34" width="130" height="30" class="box"/><text x="232" y="80" class="in-b">i64</text>
   <rect x="380" y="34" width="240" height="30" class="box"/><text x="382" y="80" class="in-b">i128</text>
   <text x="628" y="55" class="in-c">signed</text>
-
   <rect x="10"  y="104" width="30"  height="30" class="boxu"/><text x="12" y="150" class="in-b">u8</text>
   <rect x="60"  y="104" width="50"  height="30" class="boxu"/><text x="62" y="150" class="in-b">u16</text>
   <rect x="130" y="104" width="80"  height="30" class="boxu"/><text x="132" y="150" class="in-b">u32</text>
@@ -292,7 +289,6 @@ fn main() {
   <rect x="120" y="10" width="30"  height="26" class="s"/><text x="122" y="52" class="fl-c">sign 1</text>
   <rect x="150" y="10" width="120" height="26" class="e"/><text x="152" y="52" class="fl-c">exponent 11</text>
   <rect x="270" y="10" width="410" height="26" class="m"/><text x="272" y="52" class="fl-c">mantissa 52</text>
-
   <text x="10" y="92" class="fl-b">f32 (4 bytes)</text>
   <rect x="120" y="80" width="30"  height="26" class="s"/><text x="122" y="122" class="fl-c">sign 1</text>
   <rect x="150" y="80" width="90"  height="26" class="e"/><text x="152" y="122" class="fl-c">exponent 8</text>

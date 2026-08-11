@@ -26,7 +26,6 @@ To feel *why* this matters, look at what happens with an ordinary `+= 1` when tw
   <rect x="14"  y="114" width="150" height="24" class="bad"/><text x="24" y="131" class="at-b">T2 write 1</text>
   <text x="180" y="103" class="at-c">both saw 0, both wrote 1…</text>
   <rect x="180" y="114" width="150" height="24" class="bad"/><text x="190" y="131" class="at-b">result = 1  ✗ (lost!)</text>
-
   <text x="380" y="20" class="at-h" fill="var(--green)">Atomic  fetch_add(1)  (one indivisible step each)</text>
   <rect x="380" y="30" width="200" height="24" class="ok"/><text x="390" y="47" class="at-b">T1: read-add-write → 0→1</text>
   <rect x="380" y="58" width="200" height="24" class="ok"/><text x="390" y="75" class="at-b">T2: read-add-write → 1→2</text>

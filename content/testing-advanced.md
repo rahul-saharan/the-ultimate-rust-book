@@ -166,7 +166,6 @@ Example tests check the cases *you thought of*. **Property-based** tests check a
   <rect x="14" y="30" width="120" height="30" class="ex"/><text x="26" y="50" class="pt-b">one input</text>
   <path d="M134 45 L180 45" stroke="var(--text-mute)" stroke-width="1.3" marker-end="url(#pta)"/>
   <rect x="182" y="30" width="150" height="30" class="ex"/><text x="194" y="50" class="pt-b">assert == expected</text>
-
   <text x="14" y="90" class="pt-h" fill="var(--green)">Property test</text>
   <rect x="14" y="100" width="150" height="30" class="pp"/><text x="26" y="120" class="pt-b">100s random inputs</text>
   <path d="M164 115 L210 115" stroke="var(--text-mute)" stroke-width="1.3" marker-end="url(#pta)"/>

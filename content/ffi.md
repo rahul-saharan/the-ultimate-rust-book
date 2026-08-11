@@ -137,4 +137,4 @@ fn main() {
 > 2. Define a `#[repr(C)] struct Color { r: u8, g: u8, b: u8 }` and explain why `#[repr(C)]` matters for FFI.
 > 3. Sketch a `#[unsafe(no_mangle)] pub extern "C" fn multiply(a: i32, b: i32) -> i32` and describe how you'd call it from C.
 
-That completes **Advanced Rust** — `unsafe`, macros, advanced types and functions, and FFI. You've now seen the entire language. Next, we turn from the language itself to mastering its **standard library**.
+That covers the classic advanced topics — `unsafe`, macros, advanced types and functions, and FFI. Three chapters remain in this part, covering what arrived most recently: **editions**, **const generics**, and the modern syntax that has quietly improved everyday Rust.

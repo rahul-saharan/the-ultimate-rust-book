@@ -94,7 +94,6 @@ sqlx gives you a small family of ways to *build* a query. They split along one l
   <rect x="178" y="32" width="200" height="30" rx="6" class="chk"/><text x="190" y="52" class="qf-b">query_as!(Struct, …)</text>
   <rect x="392" y="32" width="170" height="30" rx="6" class="chk"/><text x="404" y="52" class="qf-b">query_scalar!(…)</text>
   <text x="14" y="74" class="qf-c">Fixed SQL string literal → mistakes are build errors. Prefer these.</text>
-
   <text x="14" y="112" class="qf-h" fill="var(--amber)">Checked at RUN time (functions) — for SQL built dynamically</text>
   <rect x="14"  y="122" width="120" height="30" rx="6" class="unk"/><text x="26" y="142" class="qf-b">query(&amp;sql)</text>
   <rect x="148" y="122" width="210" height="30" rx="6" class="unk"/><text x="160" y="142" class="qf-b">query_as::&lt;_, T&gt;(&amp;sql)</text>
@@ -339,22 +338,18 @@ The pieces:
   <text x="26" y="108" class="cr-b">Update(id, T)</text>
   <text x="26" y="126" class="cr-b">Delete(id)</text>
   <text x="26" y="144" class="cr-b">List</text>
-
   <rect x="260" y="60" width="170" height="60" rx="10" class="hnd"/>
   <text x="272" y="82" class="cr-h" fill="var(--rust-700)">handle&lt;T&gt;(pool, op)</text>
   <text x="272" y="104" class="cr-c">one function, any entity</text>
-
   <rect x="260" y="150" width="170" height="46" rx="10" class="rep"/>
   <text x="272" y="170" class="cr-h" fill="var(--blue)">Repository trait</text>
   <text x="272" y="188" class="cr-c">each entity's TABLE + SQL</text>
-
   <rect x="520" y="60" width="165" height="120" rx="10" class="out"/>
   <text x="532" y="80" class="cr-h" fill="var(--green)">Outcome&lt;T&gt; enum</text>
   <text x="532" y="102" class="cr-b">Created(id)</text>
   <text x="532" y="120" class="cr-b">One(Option&lt;T&gt;)</text>
   <text x="532" y="138" class="cr-b">Many(Vec&lt;T&gt;)</text>
   <text x="532" y="156" class="cr-b">Affected(u64)</text>
-
   <path d="M164 90 L258 90" stroke="var(--text-mute)" stroke-width="1.4" marker-end="url(#cra)"/>
   <path d="M345 148 L345 122" stroke="var(--text-mute)" stroke-width="1.4" marker-end="url(#cra)"/>
   <path d="M430 90 L518 90" stroke="var(--text-mute)" stroke-width="1.4" marker-end="url(#cra)"/>

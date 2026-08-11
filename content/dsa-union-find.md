@@ -23,7 +23,6 @@ A naive approach (storing a group id per element and relabeling on every union) 
   <circle cx="80" cy="115" r="16" class="ufn"/><text x="75" y="120" class="ufm">1</text>
   <circle cx="160" cy="115" r="16" class="ufn"/><text x="155" y="120" class="ufm">2</text>
   <line x1="110" y1="72" x2="86" y2="102" stroke="var(--text-mute)"/><line x1="130" y1="72" x2="154" y2="102" stroke="var(--text-mute)"/>
-
   <circle cx="420" cy="60" r="16" class="ufr"/><text x="415" y="65" class="ufm">3</text>
   <circle cx="420" cy="115" r="16" class="ufn"/><text x="415" y="120" class="ufm">4</text>
   <line x1="420" y1="76" x2="420" y2="99" stroke="var(--text-mute)"/>

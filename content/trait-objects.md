@@ -80,7 +80,6 @@ This is the core concept. Generics and trait objects both let you write "any `Dr
   <text x="28" y="148" class="dsc">Call address known at COMPILE time.</text>
   <text x="28" y="172" class="dsc">✅ Fastest (inlinable). ❌ One type</text>
   <text x="28" y="188" class="dsc">per call; bigger binary.</text>
-
   <rect x="326" y="16" width="300" height="190" rx="10" fill="none" stroke="var(--blue)" stroke-width="1.5"/>
   <text x="340" y="40" class="dsh" fill="var(--blue)">DYNAMIC dispatch — dyn</text>
   <text x="340" y="62" class="dsm">fn f(x: &amp;dyn Draw)</text>

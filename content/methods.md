@@ -78,13 +78,11 @@ fn main() {
   <text x="30" y="72" class="rm">fn area(&amp;self)</text>
   <text x="30" y="100" class="rc">Read-only borrow.</text>
   <text x="30" y="118" class="rc">Caller keeps the value.</text>
-
   <rect x="224" y="20" width="196" height="120" rx="10" fill="var(--blue-soft)" stroke="var(--blue)" stroke-width="1.5"/>
   <text x="238" y="46" class="rh" fill="var(--blue)">&amp;mut self</text>
   <text x="238" y="72" class="rm">fn grow(&amp;mut self)</text>
   <text x="238" y="100" class="rc">Mutable borrow.</text>
   <text x="238" y="118" class="rc">Changes the instance.</text>
-
   <rect x="432" y="20" width="192" height="120" rx="10" fill="var(--rust-100)" stroke="var(--rust-400)" stroke-width="1.5"/>
   <text x="446" y="46" class="rh" fill="var(--rust-600)">self</text>
   <text x="446" y="72" class="rm">fn into_x(self)</text>

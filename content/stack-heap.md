@@ -22,7 +22,6 @@ When your program runs, the operating system gives it memory to work with. That 
   <text x="20" y="150" class="cc5">Neat stack of frames, one per function call.</text>
   <text x="20" y="168" class="cc5">Push on call, pop on return. Blazing fast.</text>
   <text x="20" y="186" class="cc5">Every value here has a known, fixed size.</text>
-
   <text x="380" y="22" class="hh" fill="var(--rust-600)">THE HEAP</text>
   <rect x="380" y="32" width="90" height="40" class="halloc"/><text x="392" y="56" class="mm5">"hello"</text>
   <rect x="490" y="52" width="120" height="30" class="halloc"/><text x="500" y="72" class="mm5">Vec buffer</text>
@@ -31,7 +30,6 @@ When your program runs, the operating system gives it memory to work with. That 
   <text x="380" y="176" class="cc5">A flexible pool. Ask the allocator for space</text>
   <text x="380" y="194" class="cc5">(slower), get back a pointer. Any size, any</text>
   <text x="380" y="212" class="cc5">lifetime — you manage it (in Rust: ownership).</text>
-
   <path d="M270 80 C 330 80, 330 52, 378 52" stroke="var(--rust-500)" stroke-width="2" fill="none" marker-end="url(#arh)"/>
   <text x="285" y="240" class="cc5" fill="var(--text)">A stack value can hold a <tspan font-family="var(--font-mono)">ptr</tspan> into the heap ↑</text>
   <defs><marker id="arh" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="var(--rust-500)"/></marker></defs>

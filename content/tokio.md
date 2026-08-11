@@ -342,11 +342,9 @@ Tokio's answer is **`spawn_blocking`**: it runs your blocking closure on a **sep
   <text x="30" y="26" class="bph" fill="var(--blue)">async workers (≈ CPU cores)</text>
   <rect x="30" y="36" width="70" height="34" class="aw"/><rect x="106" y="36" width="70" height="34" class="aw"/><rect x="182" y="36" width="70" height="34" class="aw"/>
   <text x="30" y="90" class="bpc">fixed &amp; small · must NEVER block</text>
-
   <text x="380" y="26" class="bph" fill="var(--rust-600)">blocking pool (grows on demand)</text>
   <rect x="380" y="36" width="52" height="34" class="bl"/><rect x="438" y="36" width="52" height="34" class="bl"/><rect x="496" y="36" width="52" height="34" class="bl"/><rect x="554" y="36" width="52" height="34" class="bl"/>
   <text x="380" y="90" class="bpc">up to ~512 threads · made for blocking</text>
-
   <path d="M255 53 L378 53" stroke="var(--rust-500)" stroke-width="2.5" marker-end="url(#abp)"/>
   <text x="262" y="46" class="bpc" fill="var(--rust-600)">spawn_blocking →</text>
   <text x="30" y="150" class="bpc">Async I/O (tokio::fs, tokio::net) stays on the workers; synchronous / CPU-heavy work goes to the blocking pool.</text>

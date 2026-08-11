@@ -442,4 +442,4 @@ chapter are linked.
 > 2. Use `itertools`' `unique` and `sorted` to clean up a `Vec<i32>` with duplicates.
 > 3. Browse lib.rs for a category you're curious about (e.g. "parsing" or "cryptography") and evaluate the top crate.
 
-You now know the language *and* the ecosystem. Time to put it all together on real projects — starting with a command-line tool built from scratch.
+You now know the language *and* the ecosystem. Before we build real projects with them, we need the workshop around the code: **the Cargo toolbox, build scripts, feature flags, and debugging**.

@@ -144,7 +144,6 @@ Here's the part that makes Rust special: **generics have no runtime cost whatsoe
   <text x="34" y="54" class="mgm">fn largest&lt;T: PartialOrd&gt;</text>
   <text x="34" y="72" class="mgm">   (list: &amp;[T]) -&gt; &amp;T</text>
   <text x="20" y="118" class="mgc">Used with i32 and char…</text>
-
   <text x="360" y="22" class="mgh" fill="var(--rust-600)">Compiler GENERATES:</text>
   <rect x="360" y="32" width="260" height="40" rx="8" class="spec"/>
   <text x="374" y="57" class="mgm">fn largest_i32(&amp;[i32]) -&gt; &amp;i32</text>

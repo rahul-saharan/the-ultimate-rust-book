@@ -111,6 +111,8 @@ async function pLimit(items, n, fn) {
   // Crate-dependent jobs — compile inside the cargo project, sequentially (cargo locks).
   const projectResults = [];
   const binDir = path.join(PROJECT, 'src', 'bin');
+  // src/bin/ is gitignored, so it does not exist on a fresh clone or in CI.
+  if (projectJobs.length) fs.mkdirSync(binDir, { recursive: true });
   for (const j of projectJobs) {
     const binName = ('chk_' + j.id + '_' + j.idx).replace(/[^A-Za-z0-9_]/g, '_');
     const binPath = path.join(binDir, binName + '.rs');

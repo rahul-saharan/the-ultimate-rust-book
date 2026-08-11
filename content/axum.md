@@ -764,7 +764,6 @@ This is also why the **body-must-be-last** rule exists — and it's enforced by 
   <text x="24" y="42" class="fr-h">Request</text><text x="24" y="60" class="fr-c">head + body</text>
   <path d="M160 38 L210 30" stroke="var(--text-mute)" stroke-width="1.5" marker-end="url(#fra)"/>
   <path d="M160 52 L210 150" stroke="var(--text-mute)" stroke-width="1.5" marker-end="url(#fra)"/>
-
   <rect x="212" y="14" width="180" height="34" rx="7" class="parts"/>
   <text x="224" y="36" class="fr-b">Parts (method, uri, headers)</text>
   <text x="212" y="66" class="fr-c">FromRequestParts — read-only, run MANY, in order:</text>
@@ -772,7 +771,6 @@ This is also why the **body-must-be-last** rule exists — and it's enforced by 
   <rect x="304" y="76"  width="86" height="26" rx="6" class="parts"/><text x="316" y="93" class="fr-b">Query</text>
   <rect x="396" y="76"  width="86" height="26" rx="6" class="parts"/><text x="408" y="93" class="fr-b">State</text>
   <rect x="488" y="76"  width="110" height="26" rx="6" class="parts"/><text x="500" y="93" class="fr-b">AuthToken</text>
-
   <rect x="212" y="140" width="180" height="34" rx="7" class="body"/>
   <text x="224" y="162" class="fr-b">Body (byte stream)</text>
   <text x="212" y="194" class="fr-c">FromRequest — consumes the body, exactly ONE, must be LAST:</text>

@@ -26,7 +26,6 @@ A **binary heap** is a *complete* binary tree (every level full except possibly 
   <circle cx="60" cy="135" r="15" class="hnode"/><text x="55" y="140" class="hpm">8</text>
   <circle cx="120" cy="135" r="15" class="hnode"/><text x="115" y="140" class="hpm">4</text>
   <text x="20" y="175" class="hpc">min-heap: parent ≤ children</text>
-
   <text x="360" y="24" class="hpc">stored as an array:</text>
   <g>
     <rect x="360" y="34" width="40" height="30" class="acell"/><text x="376" y="54" class="hpm" fill="var(--text)">1</text><text x="374" y="78" class="aidx">0</text>

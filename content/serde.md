@@ -57,22 +57,18 @@ The single most important idea in serde is that types and formats never talk to 
   <rect x="304" y="30" width="120" height="26" rx="5" class="rust"/><text x="316" y="48" class="hg-b">HashMap</text>
   <rect x="432" y="30" width="100" height="26" rx="5" class="rust"/><text x="444" y="48" class="hg-b">Option&lt;T&gt;</text>
   <rect x="540" y="30" width="120" height="26" rx="5" class="rust"/><text x="552" y="48" class="hg-b">your types</text>
-
   <path d="M60 56 L300 128" stroke="var(--text-mute)" stroke-width="1"/>
   <path d="M640 56 L400 128" stroke="var(--text-mute)" stroke-width="1"/>
   <path d="M200 56 L320 128" stroke="var(--text-mute)" stroke-width="1"/>
   <path d="M480 56 L380 128" stroke="var(--text-mute)" stroke-width="1"/>
-
   <rect x="230" y="130" width="240" height="66" rx="10" class="core"/>
   <text x="252" y="156" class="hg-h" fill="var(--amber)">serde data model</text>
   <text x="252" y="176" class="hg-c">29 abstract types: bool, i/u*, str,</text>
   <text x="252" y="190" class="hg-c">seq, map, struct, enum, option…</text>
-
   <path d="M300 196 L60 268" stroke="var(--text-mute)" stroke-width="1"/>
   <path d="M400 196 L640 268" stroke="var(--text-mute)" stroke-width="1"/>
   <path d="M320 196 L200 268" stroke="var(--text-mute)" stroke-width="1"/>
   <path d="M380 196 L480 268" stroke="var(--text-mute)" stroke-width="1"/>
-
   <text x="20" y="286" class="hg-h">Formats</text>
   <rect x="20"  y="292" width="80"  height="26" rx="5" class="fmt"/><text x="34" y="310" class="hg-b">JSON</text>
   <rect x="108" y="292" width="80"  height="26" rx="5" class="fmt"/><text x="122" y="310" class="hg-b">YAML</text>
@@ -111,7 +107,6 @@ Understanding the moving parts demystifies serde's error messages and unlocks cu
   <path d="M130 47 L158 47" stroke="var(--text-mute)" stroke-width="1.4" marker-end="url(#dva)"/>
   <path d="M340 47 L368 47" stroke="var(--text-mute)" stroke-width="1.4" marker-end="url(#dva)"/>
   <path d="M540 47 L568 47" stroke="var(--text-mute)" stroke-width="1.4" marker-end="url(#dva)"/>
-
   <text x="10" y="110" class="dv-c">Deserialize — Deserializer drives a Visitor that builds the value:</text>
   <rect x="10"  y="120" width="120" height="34" rx="7" class="byt"/><text x="24" y="142" class="dv-b">{"x":1,…}</text>
   <rect x="160" y="120" width="180" height="34" rx="7" class="fmt"/><text x="172" y="142" class="dv-b">Deserializer (json)</text>

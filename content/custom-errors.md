@@ -160,7 +160,6 @@ Caused by: No such file or directory (os error 2)
   <text x="36" y="72" class="ec">Callers need to MATCH on failures.</text>
   <text x="36" y="94" class="em2">#[derive(Error)] enum MyError {…}</text>
   <text x="36" y="120" class="ec">Structured, precise, zero-cost.</text>
-
   <rect x="330" y="20" width="290" height="120" rx="10" class="app"/>
   <text x="346" y="46" class="eh" fill="var(--rust-600)">🚀 Application → anyhow</text>
   <text x="346" y="72" class="ec">You just need to REPORT failures.</text>

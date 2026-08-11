@@ -160,7 +160,6 @@ Each raw `read`/`write` on a file or socket is a **system call** — a round tri
   <path d="M100 52 L200 52" stroke="var(--text-mute)" stroke-width="1.2" marker-end="url(#bfa)"/>
   <rect x="200" y="30" width="110" height="30" class="os"/><text x="214" y="50" class="bf-b">OS / disk</text>
   <text x="320" y="49" class="bf-c">many syscalls</text>
-
   <text x="10" y="105" class="bf-c">Buffered: one big syscall fills the buffer; small reads hit memory (fast)</text>
   <rect x="10" y="115" width="90" height="30" class="app"/><text x="24" y="135" class="bf-b">app</text>
   <path d="M100 130 L200 130" stroke="var(--text-mute)" stroke-width="1.2" marker-end="url(#bfa)"/>
