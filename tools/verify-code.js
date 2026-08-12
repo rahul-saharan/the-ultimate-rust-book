@@ -21,7 +21,8 @@ const CONCURRENCY = 8;
 // Crates available in tools/verify-project (mirrors common Rust Playground crates).
 // Blocks referencing these compile inside that cargo project instead of bare rustc.
 const PROJECT = path.join(ROOT, 'tools', 'verify-project');
-const KNOWN_CRATES = ['tokio', 'futures', 'serde', 'serde_json', 'rand', 'regex', 'anyhow', 'thiserror', 'itertools'];
+const KNOWN_CRATES = ['tokio', 'futures', 'serde', 'serde_json', 'rand', 'regex', 'anyhow', 'thiserror', 'itertools',
+  'axum', 'tower', 'tower_http', 'tracing', 'http_body_util'];
 const CRATE_RE = new RegExp('\\b(' + KNOWN_CRATES.join('|') + ')\\b');
 function needsProject(src) { return CRATE_RE.test(src); }
 

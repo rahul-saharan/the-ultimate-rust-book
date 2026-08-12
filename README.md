@@ -9,7 +9,7 @@ host it on GitHub Pages, or anywhere else that serves files, in a couple of minu
 
 ## What's inside
 
-The book is 160 chapters organized into 22 parts, taking a reader from complete beginner to
+The book is 162 chapters organized into 22 parts, taking a reader from complete beginner to
 advanced:
 
 - **Getting started and foundations** — installation, Cargo, variables, types, functions, control flow.
@@ -27,7 +27,7 @@ advanced:
 - **Tooling & workflow** — the Cargo toolbox, build scripts, feature flags, debugging, cross-compilation.
 - **Performance & production** — profiling, memory layout, deployment, CI/CD, and observability.
 - **Real projects** — a CLI tool, a web service, WebAssembly, and embedded Rust.
-- **A complete data-structures & algorithms course** — 29 chapters, from Big-O to graphs, dynamic
+- **A complete data-structures & algorithms course** — 31 chapters, from Big-O to graphs, dynamic
   programming, network flow, geometry, and advanced range structures, all in idiomatic Rust.
 - **Appendices** — keywords, operators, derivable traits, a glossary, and a one-page cheat sheet.
 

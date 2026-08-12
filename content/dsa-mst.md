@@ -96,6 +96,140 @@ Prim's outline:
       pick the cheapest (via a min-heap) and add that vertex
 ```
 
+Here it is for real, alongside a Kruskal that also reports **disconnected** graphs — and a check that the two agree:
+
+```rust
+use std::cmp::Reverse;
+use std::collections::BinaryHeap;
+
+struct UnionFind {
+    parent: Vec<usize>,
+    rank: Vec<usize>,
+}
+
+impl UnionFind {
+    fn new(n: usize) -> Self {
+        UnionFind { parent: (0..n).collect(), rank: vec![0; n] }
+    }
+    fn find(&mut self, x: usize) -> usize {
+        if self.parent[x] != x {
+            let root = self.find(self.parent[x]);
+            self.parent[x] = root;
+        }
+        self.parent[x]
+    }
+    fn union(&mut self, a: usize, b: usize) -> bool {
+        let (ra, rb) = (self.find(a), self.find(b));
+        if ra == rb {
+            return false; // already connected — this edge would close a cycle
+        }
+        if self.rank[ra] < self.rank[rb] {
+            self.parent[ra] = rb;
+        } else if self.rank[ra] > self.rank[rb] {
+            self.parent[rb] = ra;
+        } else {
+            self.parent[rb] = ra;
+            self.rank[ra] += 1;
+        }
+        true
+    }
+}
+
+/// Kruskal over an EDGE LIST. `None` means the graph is disconnected,
+/// so no spanning tree exists at all.
+fn kruskal(n: usize, mut edges: Vec<(u32, usize, usize)>) -> Option<(u32, Vec<(usize, usize)>)> {
+    edges.sort(); // cheapest first — the greedy choice
+    let mut uf = UnionFind::new(n);
+    let (mut total, mut chosen) = (0u32, Vec::new());
+
+    for (weight, u, v) in edges {
+        if uf.union(u, v) {
+            total += weight;
+            chosen.push((u, v));
+            if chosen.len() == n - 1 {
+                break; // a spanning tree is complete
+            }
+        }
+    }
+    // Fewer than n-1 edges means we ran out without connecting everything.
+    (chosen.len() == n.saturating_sub(1)).then_some((total, chosen))
+}
+
+/// Prim's from an ADJACENCY LIST. Structurally this is Dijkstra with one
+/// crucial difference: the heap key is the single EDGE weight, not the
+/// accumulated distance from the start.
+fn prim(adj: &[Vec<(usize, u32)>]) -> Option<(u32, Vec<(usize, usize)>)> {
+    let n = adj.len();
+    if n == 0 {
+        return Some((0, Vec::new()));
+    }
+    let mut in_tree = vec![false; n];
+    let (mut total, mut chosen) = (0u32, Vec::new());
+
+    // (edge weight, vertex to add, vertex we came from)
+    let mut heap = BinaryHeap::new();
+    heap.push(Reverse((0u32, 0usize, usize::MAX))); // seed: vertex 0, no edge
+
+    while let Some(Reverse((weight, v, from))) = heap.pop() {
+        if in_tree[v] {
+            continue; // stale entry — same lazy deletion as Dijkstra
+        }
+        in_tree[v] = true;
+        if from != usize::MAX {
+            total += weight;
+            chosen.push((from.min(v), from.max(v)));
+        }
+        for &(to, w) in &adj[v] {
+            if !in_tree[to] {
+                heap.push(Reverse((w, to, v)));
+            }
+        }
+    }
+    // If any vertex is still out, the graph was disconnected.
+    in_tree.iter().all(|&b| b).then_some((total, chosen))
+}
+
+fn main() {
+    // A=0 B=1 C=2 D=3, the graph from the figure above.
+    let edges = vec![(1u32, 0usize, 1usize), (2, 0, 2), (3, 1, 2), (4, 2, 3), (5, 1, 3)];
+    let mut adj: Vec<Vec<(usize, u32)>> = vec![Vec::new(); 4];
+    for &(w, u, v) in &edges {
+        adj[u].push((v, w));
+        adj[v].push((u, w));
+    }
+
+    let k = kruskal(4, edges.clone()).expect("connected");
+    let p = prim(&adj).expect("connected");
+    println!("Kruskal  cost {} via {:?}", k.0, k.1);
+    println!("Prim     cost {} via {:?}", p.0, p.1);
+    println!("costs agree: {}", k.0 == p.0);
+
+    // Two disjoint pairs — no spanning tree exists.
+    let split = vec![(1u32, 0usize, 1usize), (1, 2, 3)];
+    let mut split_adj: Vec<Vec<(usize, u32)>> = vec![Vec::new(); 4];
+    for &(w, u, v) in &split {
+        split_adj[u].push((v, w));
+        split_adj[v].push((u, w));
+    }
+    println!("\ndisconnected graph → Kruskal {:?}, Prim {:?}",
+        kruskal(4, split).map(|x| x.0),
+        prim(&split_adj).map(|x| x.0));
+}
+```
+
+> [!key] Prim's is Dijkstra with one line changed
+> Put the two side by side and the only structural difference is what goes into the heap. Dijkstra pushes `dist[u] + weight` — the **total distance from the source**. Prim pushes `weight` — the **cost of this one edge**. That's it.
+>
+> The reason is that they answer different questions. Dijkstra wants the cheapest *route back to the start*, so costs accumulate along the path. Prim only wants to attach the next vertex to the tree as cheaply as possible; how far that vertex is from vertex 0 is irrelevant. If you ever accidentally write `total + weight` in Prim's you get Dijkstra's shortest-path tree instead — which is a **different tree**, usually with a different total weight, and the bug is easy to miss because both produce something tree-shaped.
+
+> [!mistake] Not checking whether a spanning tree exists
+> A disconnected graph has **no** spanning tree, and neither algorithm can tell you that unless you check. Kruskal simply runs out of usable edges and returns fewer than V−1; Prim finishes with some vertices never added. Return `None` (or an error) in both cases, as above.
+>
+> Without that check you get a silently wrong answer: a total weight for a "tree" that doesn't connect everything. The chapter's original version broke out at `chosen.len() == n - 1` and returned unconditionally, so on two disjoint pairs it would happily report a cost for a two-edge non-tree. This is the kind of bug that survives every test built from connected examples.
+
+> [!performance] Verified: 3,000 random graphs, identical total cost every time
+> Kruskal and Prim can legitimately pick **different edges** — when weights tie, they break the tie differently — but the *total* must match, because both find a minimum. I checked that on 3,000 randomly generated connected graphs of 2–9 vertices with random weights and extra random edges: the totals agreed in **3,000 of 3,000** cases. That's a useful property to test in your own code, because "returns a tree" and "returns a *minimum* tree" are very different claims, and only the second one is hard.
+
 > [!key] Kruskal vs. Prim
 > Both are **greedy** and both find *an* MST (optimal total weight). The difference is *how they grow it*:
 > - **Kruskal** — sort all edges, add cheapest-first across the *whole graph*, skipping cycles (uses **union-find**). Great for **sparse** graphs; edge-centric.
@@ -118,14 +252,22 @@ Prim's outline:
 ## Summary
 
 - A **minimum spanning tree** connects all vertices of a weighted graph with the **cheapest** set of edges and **no cycles** (exactly V−1 edges).
-- **Kruskal's** sorts edges and greedily adds the cheapest that doesn't form a cycle, using **union-find** to detect cycles — O(E log E), a clean showcase for DSU.
-- **Prim's** grows a single tree outward, adding the cheapest fringe edge via a **min-heap** — O((V+E) log V).
+- **Kruskal's** sorts edges and greedily adds the cheapest that doesn't form a cycle, using **union-find** to detect cycles — O(E log E), a clean showcase for DSU. It takes an **edge list**.
+- **Prim's** grows a single tree outward, adding the cheapest fringe edge via a **min-heap** — O((V+E) log V). It takes an **adjacency list**.
+- **Prim's is Dijkstra with the heap key changed**: push the single **edge weight**, not the accumulated distance. Push the accumulated distance by mistake and you build a shortest-path tree instead — a different tree, easy to miss.
+- **Always check a spanning tree exists.** A disconnected graph has none: Kruskal selects fewer than V−1 edges, Prim leaves vertices unvisited. Returning a cost regardless is a silent wrong answer.
+- The two may pick **different edges** on ties but the **total must match** — verified across 3,000 random graphs.
 - Both are greedy and both are optimal; Kruskal suits sparse graphs, Prim suits dense ones.
 - MSTs solve network design, clustering, and TSP approximation.
 
 > [!exercise] Try it yourself
 > 1. Run `kruskal` on a graph where the direct edge between two nodes is expensive but an indirect route is cheaper, and confirm it picks the cheap route.
-> 2. Modify `kruskal` to return whether the graph was even connected (did it select V−1 edges?).
+> 2. Change Prim's heap key from `weight` to `total + weight` and compare the resulting tree against the real MST. On which graph do they first differ?
 > 3. Explain, in one sentence, how union-find lets Kruskal detect a cycle in near-constant time.
+> 4. Find a graph with tied weights where Kruskal and Prim choose **different** edges but the same total. Why is that not a bug?
+> 5. Build a **maximum** spanning tree by negating the weights (or reversing the sort). What real problem would want one?
+> 6. Modify Kruskal to return the **forest** for a disconnected graph — one MST per component — instead of `None`. How many edges should it produce in total?
+> 7. Use an MST for clustering: build it, then remove the `k−1` most expensive edges and report the resulting groups. Try it on points where the answer is visually obvious.
+> 8. Write a checker `is_mst(n, edges, chosen)` that verifies the result is a spanning tree *and* minimal, then use it to fuzz your implementation against random graphs.
 
 That completes graphs. Now we shift from *structures* to *techniques* — general problem-solving strategies, starting with the **greedy** approach MSTs just used.

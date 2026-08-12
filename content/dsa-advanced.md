@@ -97,6 +97,117 @@ A **segment tree** is more general: it stores each array segment's aggregate (su
 <figcaption>A segment tree: internal nodes hold aggregates of their segments, so any range query touches only O(log n) nodes.</figcaption>
 </figure>
 
+Rust's closures make this genuinely elegant: one implementation, generic over *any* associative operation.
+
+```rust
+/// A segment tree over any associative operation.
+/// `identity` must satisfy combine(identity, x) == x.
+struct SegTree<T, F> {
+    n: usize,
+    tree: Vec<T>,
+    identity: T,
+    combine: F,
+}
+
+impl<T: Copy, F: Fn(T, T) -> T> SegTree<T, F> {
+    fn new(values: &[T], identity: T, combine: F) -> Self {
+        let n = values.len();
+        let mut tree = vec![identity; 2 * n];
+        // Leaves occupy tree[n..2n]; node i has children 2i and 2i+1.
+        // This "iterative" layout needs no recursion and no padding to a power of two.
+        tree[n..2 * n].copy_from_slice(values);
+        for i in (1..n).rev() {
+            tree[i] = combine(tree[2 * i], tree[2 * i + 1]);
+        }
+        SegTree { n, tree, identity, combine }
+    }
+
+    /// Set position `i`, then repair its ancestors. O(log n).
+    fn set(&mut self, i: usize, value: T) {
+        let mut idx = i + self.n;
+        self.tree[idx] = value;
+        while idx > 1 {
+            idx /= 2;
+            self.tree[idx] = (self.combine)(self.tree[2 * idx], self.tree[2 * idx + 1]);
+        }
+    }
+
+    /// Combine over the half-open range [l, r). O(log n).
+    /// Climbs from both ends, absorbing whole nodes as it goes.
+    fn query(&self, l: usize, r: usize) -> T {
+        let (mut lo, mut hi) = (l + self.n, r + self.n);
+        // Two accumulators, because the operation need not be commutative.
+        let (mut left, mut right) = (self.identity, self.identity);
+        while lo < hi {
+            if lo & 1 == 1 {
+                left = (self.combine)(left, self.tree[lo]);
+                lo += 1;
+            }
+            if hi & 1 == 1 {
+                hi -= 1;
+                right = (self.combine)(self.tree[hi], right);
+            }
+            lo /= 2;
+            hi /= 2;
+        }
+        (self.combine)(left, right)
+    }
+}
+
+fn main() {
+    let values: Vec<i64> = vec![3, 2, 5, 1, 4, 6];
+
+    // The same structure, three different questions.
+    let mut sums = SegTree::new(&values, 0i64, |a, b| a + b);
+    let mut mins = SegTree::new(&values, i64::MAX, |a, b| a.min(b));
+    let mut maxs = SegTree::new(&values, i64::MIN, |a, b| a.max(b));
+
+    println!("values {values:?}");
+    println!("range [1,4)  sum {}  min {}  max {}",
+        sums.query(1, 4), mins.query(1, 4), maxs.query(1, 4));
+
+    sums.set(2, 15);
+    mins.set(2, 15);
+    maxs.set(2, 15);
+    println!("\nafter set(2, 15):");
+    println!("range [1,4)  sum {}  min {}  max {}",
+        sums.query(1, 4), mins.query(1, 4), maxs.query(1, 4));
+
+    // Verify every possible range against a direct computation.
+    let mut updated = values.clone();
+    updated[2] = 15;
+    let mut all_match = true;
+    for l in 0..updated.len() {
+        for r in l + 1..=updated.len() {
+            let slice = &updated[l..r];
+            all_match &= sums.query(l, r) == slice.iter().sum::<i64>();
+            all_match &= mins.query(l, r) == *slice.iter().min().expect("non-empty");
+            all_match &= maxs.query(l, r) == *slice.iter().max().expect("non-empty");
+        }
+    }
+    println!("\nall {} ranges agree with brute force: {all_match}",
+        updated.len() * (updated.len() + 1) / 2);
+
+    // Any associative operation works — here, gcd.
+    let gcds = SegTree::new(&[12i64, 18, 24, 9], 0, |a, b| {
+        let (mut a, mut b) = (a, b);
+        while b != 0 { let t = b; b = a % b; a = t; }
+        a
+    });
+    println!("gcd of [12,18,24,9] = {}", gcds.query(0, 4));
+}
+```
+
+> [!key] The identity element is what makes a generic segment tree possible
+> A query combines a handful of node aggregates, but the *number* varies with the range — so you need a starting value that changes nothing. That's the **identity**: `0` for sum, `i64::MAX` for min, `i64::MIN` for max, `1` for product, `0` for gcd (since `gcd(0, x) == x`).
+>
+> Together, an associative operation and its identity form a **monoid**, and a monoid is exactly what a segment tree requires — nothing more. That's why one implementation handles sum, min, max, gcd, bitwise-or, matrix product, and "leftmost non-zero" without modification. Get the identity wrong (say `0` for min) and every query returns `0`, with no error to hint at why.
+
+> [!mistake] Two accumulators, because the operation may not commute
+> Notice `query` keeps `left` and `right` separately and only joins them at the end. For sum and min that's unnecessary — order doesn't matter. But a segment tree over **non-commutative** operations (matrix multiplication, string concatenation, function composition) breaks if you fold everything into one accumulator, because nodes are absorbed out of order as the two pointers climb.
+>
+> Associativity is required; commutativity is not — and writing the loop with one accumulator quietly assumes both. It works for the common cases and fails for exactly the interesting ones.
+
 > [!key] Fenwick vs. segment tree
 > - **Fenwick tree**: tiny, fast, simple — but limited to *invertible* operations (sums, XOR) because range queries subtract prefix results. Use it for **range sums** with point updates.
 > - **Segment tree**: more code and memory, but handles *any associative* operation (min, max, gcd, sum) and supports **range updates** with "lazy propagation." Use it when you need range min/max or range modifications.
@@ -107,9 +218,79 @@ A **segment tree** is more general: it stores each array segment's aggregate (su
 
 You've now covered the structures used in ~99% of programming. A few more exist for specialized domains:
 
+### If the data never changes: sparse tables
+
+Both structures above pay O(log n) per query to support *updates*. If your data is **immutable**, you can do better — O(1) queries, at the cost of O(n log n) preprocessing:
+
+```rust
+/// Range minimum in O(1) on immutable data. Build is O(n log n).
+struct SparseTable {
+    /// levels[k][i] = min over the window starting at i of length 2^k.
+    levels: Vec<Vec<i64>>,
+}
+
+impl SparseTable {
+    fn new(values: &[i64]) -> Self {
+        let n = values.len();
+        let mut levels = vec![values.to_vec()];
+        let mut k = 1;
+        while (1 << k) <= n {
+            let span = 1usize << k;
+            let previous = &levels[k - 1];
+            // Each window is the min of two half-width windows.
+            let row: Vec<i64> = (0..=n - span)
+                .map(|i| previous[i].min(previous[i + span / 2]))
+                .collect();
+            levels.push(row);
+            k += 1;
+        }
+        SparseTable { levels }
+    }
+
+    /// Minimum over [l, r) in O(1).
+    fn min(&self, l: usize, r: usize) -> i64 {
+        let k = (r - l).ilog2() as usize;
+        let row = &self.levels[k];
+        // Two windows of length 2^k that TOGETHER cover [l, r).
+        // They overlap, which is fine for min — but not for sum.
+        row[l].min(row[r - (1 << k)])
+    }
+}
+
+fn main() {
+    let values: Vec<i64> = vec![3, 2, 5, 1, 4, 6, 0, 7];
+    let table = SparseTable::new(&values);
+
+    println!("values {values:?}");
+    println!("min [0,4) = {}", table.min(0, 4));
+    println!("min [2,6) = {}", table.min(2, 6));
+    println!("min [4,8) = {}", table.min(4, 8));
+    println!("min [3,4) = {}   (single element)", table.min(3, 4));
+
+    let all_match = (0..values.len()).all(|l| {
+        (l + 1..=values.len())
+            .all(|r| table.min(l, r) == *values[l..r].iter().min().expect("non-empty"))
+    });
+    println!("\nevery range matches brute force: {all_match}");
+}
+```
+
+> [!key] Overlapping windows are why sparse tables do min but not sum
+> The O(1) query works by covering `[l, r)` with **two overlapping** power-of-two windows. That's valid because `min` is **idempotent** — `min(x, x) == x` — so counting the overlap twice changes nothing.
+>
+> Sum is not idempotent, so the same trick would double-count the overlap. You *can* build a sparse table for sums, but only by using disjoint windows, which costs O(log n) per query and loses the whole advantage. So: **min, max, gcd, and bitwise-and/or work in O(1); sum does not.** Use a prefix-sum array for immutable sums — it's O(1) too, and far simpler.
+
+| Structure | Query | Update | Best for |
+|---|---|---|---|
+| prefix sums | **O(1)** | O(n) | immutable **sums** |
+| sparse table | **O(1)** | ✗ none | immutable **min/max/gcd** (idempotent ops) |
+| Fenwick tree | O(log n) | O(log n) | mutable **sums** — smallest and fastest |
+| segment tree | O(log n) | O(log n) | mutable **any monoid**, plus range updates |
+| segment tree + lazy | O(log n) | O(log n) **per range** | range *modifications* (add x to all of `[l,r)`) |
+
 > [!tip] The advanced frontier
 > - **Lazy-propagation segment trees** — apply updates to a whole *range* in O(log n).
-> - **Sparse tables** — O(1) range min/max on *immutable* data (no updates).
+> - **Sparse tables** — O(1) range min/max on *immutable* data (shown above).
 > - **Suffix arrays / suffix automata** — advanced string queries (all substrings, longest repeated).
 > - **Treaps / balanced BSTs with order statistics** — "k-th smallest" queries with updates.
 > - **Persistent data structures** — query *past versions* of a structure after updates.
@@ -124,13 +305,20 @@ You've now covered the structures used in ~99% of programming. A few more exist 
 
 - **Range-query problems** (query a range *and* update elements, both frequently) defeat plain and prefix-sum arrays; specialized trees give **O(log n)** for both.
 - A **Fenwick tree (BIT)** is a compact array using the **lowest-set-bit** trick for O(log n) prefix sums and point updates — ideal for **range sums**.
-- A **segment tree** is more general — any associative op (sum/min/max/gcd) and range updates (with lazy propagation) — at the cost of more code.
+- A **segment tree** works for any **monoid**: an associative operation plus an **identity**. One generic implementation handles sum, min, max, gcd, and matrix product — get the identity wrong and every query silently returns it.
+- Segment-tree queries need **two accumulators**, because associativity is required but **commutativity is not** — one accumulator quietly breaks non-commutative operations.
 - Choose **Fenwick** for range sums (smaller/faster), **segment tree** for min/max/gcd or range updates.
-- Beyond these lie sparse tables, suffix structures, persistent structures, and more — specialized tools for when O(log n) range magic isn't enough.
+- If the data is **immutable**, a **sparse table** gives O(1) queries — but only for **idempotent** operations, because it covers a range with two *overlapping* windows. Use prefix sums for immutable sums.
+- Beyond these lie lazy propagation, suffix structures, persistent structures, and more — specialized tools for when O(log n) range magic isn't enough.
 
 > [!exercise] Try it yourself
-> 1. Extend the `Fenwick` tree with a `point_set(i, value)` that sets element `i` to an exact value (hint: update by the delta from its current value).
+> 1. Extend the `Fenwick` tree with a `point_set(i, value)` that sets element `i` to an exact value (hint: update by the delta from its current value — which means you need to read it first).
 > 2. Explain why a Fenwick tree can do range *sum* but not range *minimum* (what property does subtraction require?).
-> 3. Sketch how a segment tree would answer "minimum of elements 2..7" by combining O(log n) node aggregates.
+> 3. Build a `SegTree` with `identity = 0` and `combine = min`. Query any range and explain the result.
+> 4. Use `SegTree` with a non-commutative operation — say 2×2 matrix multiplication. Then rewrite `query` with a single accumulator and find a range where the answer changes.
+> 5. Add `range_min` to the sparse table for the *maximum* instead. Which line changes?
+> 6. Try to make the sparse table answer range **sums** with the overlapping-window trick, and work out exactly which ranges come out wrong.
+> 7. Compare a `SegTree` for sums against the `Fenwick` tree on the same workload: lines of code, memory, and query time for 10⁶ operations.
+> 8. Implement `SegTree::first_at_least(value)` — the leftmost index whose prefix sum reaches `value` — by descending the tree in O(log n) rather than binary-searching with O(log² n) queries.
 
 🎉 **That completes the Data Structures & Algorithms course** — from Big-O through graphs, DP, and advanced range structures, all in idiomatic Rust. You now have the algorithmic toolkit of a strong software engineer. The book closes with handy **appendices**: keyword and operator references, derivable traits, a glossary, and a one-page cheat sheet.

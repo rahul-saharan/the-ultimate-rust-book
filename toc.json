@@ -660,7 +660,7 @@
           "title": "Choosing a Runtime",
           "file": "async-ecosystem.md",
           "level": "intermediate",
-          "time": "9 min",
+          "time": "12 min",
           "summary": "tokio vs async-std vs smol — trade-offs and interop.",
           "keywords": "async-std smol tokio runtime comparison compatibility ecosystem"
         }
@@ -719,7 +719,7 @@
           "title": "Function Pointers & Returning Closures",
           "file": "advanced-functions.md",
           "level": "advanced",
-          "time": "10 min",
+          "time": "12 min",
           "summary": "fn pointers, impl Trait, and Box<dyn Fn> return types.",
           "keywords": "function pointer fn impl Trait return closure Box dyn Fn higher order"
         },
@@ -778,8 +778,8 @@
           "title": "Option & Result Methods Reference",
           "file": "std-option-result.md",
           "level": "intermediate",
-          "time": "16 min",
-          "summary": "Every combinator you need: map, and_then, ok_or, unwrap_or, and more.",
+          "time": "14 min",
+          "summary": "Every combinator you need: map, and_then, ok_or, unwrap_or, take/replace, and collecting Results.",
           "keywords": "Option Result map and_then ok_or unwrap_or filter combinators reference"
         },
         {
@@ -787,27 +787,27 @@
           "title": "The Iterator Trait Reference",
           "file": "std-iterator.md",
           "level": "intermediate",
-          "time": "15 min",
-          "summary": "A complete reference to the Iterator trait's methods.",
-          "keywords": "Iterator trait methods reference adapters consumers std iter"
+          "time": "22 min",
+          "summary": "The Iterator trait end to end: laziness, every method family, by_ref/peekable/scan/try_fold, and writing your own.",
+          "keywords": "Iterator trait methods reference adapters consumers std iter lazy pull by_ref peekable scan try_fold size_hint DoubleEndedIterator FromIterator IntoIterator Extend windows chunks from_fn successors"
         },
         {
           "id": "std-io",
           "title": "std::io — Reading & Writing",
           "file": "std-io.md",
           "level": "intermediate",
-          "time": "14 min",
-          "summary": "Read, Write, BufReader, stdin/stdout, and error handling.",
-          "keywords": "io Read Write BufReader BufWriter stdin stdout lines bytes flush"
+          "time": "24 min",
+          "summary": "Read, Write, BufRead and Seek: partial writes, measured buffering, the drop-flush trap, Cursor, and ErrorKind.",
+          "keywords": "io Read Write BufReader BufWriter stdin stdout lines bytes flush BufRead Seek Cursor write_all read_exact read_line read_until ErrorKind NotFound UnexpectedEof Interrupted BrokenPipe io copy sink repeat empty into_inner"
         },
         {
           "id": "std-fs",
           "title": "std::fs — Files & Paths",
           "file": "std-fs.md",
           "level": "intermediate",
-          "time": "12 min",
-          "summary": "Read and write files, walk directories, and work with paths.",
-          "keywords": "fs File read_to_string write Path PathBuf metadata directory create_dir"
+          "time": "22 min",
+          "summary": "Whole-file helpers, OpenOptions, path anatomy and traps, directory walking, metadata, and atomic saves.",
+          "keywords": "fs File read_to_string write Path PathBuf metadata directory create_dir OpenOptions create_new truncate append read_dir DirEntry file_type metadata symlink_metadata permissions canonicalize rename sync_all atomic TOCTOU PathBuf components AsRef"
         },
         {
           "id": "io-streams",
@@ -823,63 +823,63 @@
           "title": "std::collections Reference",
           "file": "std-collections-ref.md",
           "level": "intermediate",
-          "time": "20 min",
-          "summary": "The cross-collection decision guide: Big-O, memory cost, the shared method matrix, and hashers.",
-          "keywords": "collections Vec HashMap BTreeMap VecDeque HashSet BinaryHeap complexity reference"
+          "time": "38 min",
+          "summary": "The cross-collection decision guide: measured costs, iteration-order guarantees, the Entry API, BTree ranges, set algebra, and bulk edits.",
+          "keywords": "collections Vec HashMap BTreeMap VecDeque HashSet BinaryHeap complexity reference entry or_insert or_default and_modify Occupied Vacant range predecessor Bound union intersection difference retain dedup drain swap_remove shrink_to_fit VecDeque make_contiguous BinaryHeap Reverse iteration order randomized"
         },
         {
           "id": "std-string-str",
           "title": "String, str & Text Types",
           "file": "std-string-str.md",
           "level": "intermediate",
-          "time": "13 min",
-          "summary": "Deep reference on String, str, OsString, CString, and Cow.",
-          "keywords": "String str OsString CString Cow to_string parse split trim reference"
+          "time": "26 min",
+          "summary": "UTF-8 in practice: bytes vs chars vs graphemes, the split/search family, building strings, parsing, Cow, and API signatures.",
+          "keywords": "String str OsString CString Cow to_string parse split trim reference UTF-8 char_indices is_char_boundary graphemes normalization split_once strip_prefix pattern from_utf8_lossy write! fmt::Write FromStr from_str_radix Cow to_mut AsRef Into Box<str>"
         },
         {
           "id": "std-time",
           "title": "Time & Duration",
           "file": "std-time.md",
           "level": "beginner",
-          "time": "9 min",
-          "summary": "Measure elapsed time and work with Instant, Duration, SystemTime.",
-          "keywords": "Instant Duration SystemTime elapsed sleep now timing"
+          "time": "20 min",
+          "summary": "Duration, Instant and SystemTime: saturating arithmetic, deadlines, timeouts, and how to measure code honestly.",
+          "keywords": "Instant Duration SystemTime elapsed sleep now timing monotonic saturating_sub checked_sub deadline saturating_duration_since UNIX_EPOCH SystemTimeError recv_timeout sleep black_box benchmark criterion chrono"
         },
         {
           "id": "std-env-process",
           "title": "Environment, Args & Processes",
           "file": "std-env-process.md",
           "level": "intermediate",
-          "time": "11 min",
-          "summary": "Read arguments and env vars, and spawn child processes.",
-          "keywords": "env args var Command process spawn exit output current_dir"
+          "time": "22 min",
+          "summary": "Args and env vars (including the non-UTF-8 traps), exit codes that run destructors, and Command with pipes and pipelines.",
+          "keywords": "env args var Command process spawn exit output current_dir args_os var_os OsString VarError current_exe env::consts ExitCode process::exit Stdio piped pipeline wait_with_output try_wait kill shell injection"
         },
         {
           "id": "std-net",
           "title": "std::net — TCP & UDP",
           "file": "std-net.md",
           "level": "advanced",
-          "time": "13 min",
-          "summary": "Build networked programs with TcpListener, TcpStream, and UdpSocket.",
-          "keywords": "net TcpListener TcpStream UdpSocket socket bind connect networking"
+          "time": "24 min",
+          "summary": "TCP and UDP with runnable loopback examples: framing, EOF, timeouts, socket options, addresses and DNS.",
+          "keywords": "net TcpListener TcpStream UdpSocket socket bind connect networking framing length prefix delimiter read_exact EOF WouldBlock set_read_timeout set_nodelay try_clone shutdown ToSocketAddrs SocketAddr IpAddr loopback 0.0.0.0 datagram truncation connect_timeout"
         },
         {
           "id": "std-sync",
           "title": "std::sync — Synchronization Primitives",
           "file": "std-sync.md",
           "level": "advanced",
-          "time": "12 min",
-          "summary": "Arc, Mutex, RwLock, Once, Barrier, and atomics in one place.",
-          "keywords": "sync Arc Mutex RwLock Once OnceLock Barrier Condvar atomic reference"
+          "time": "30 min",
+          "summary": "Poisoning, guard lifetimes, Mutex vs RwLock vs atomics measured, channels with back-pressure, Condvar, and scoped threads.",
+          "keywords": "sync Arc Mutex RwLock Once OnceLock Barrier Condvar atomic reference poisoning PoisonError into_inner try_lock deadlock guard lifetime mpsc sync_channel backpressure rendezvous wait_while wait_timeout_while spurious wakeup thread::scope scoped threads compare_exchange Ordering"
         },
         {
           "id": "std-fmt",
           "title": "Formatting: Display, Debug & format!",
           "file": "std-fmt.md",
           "level": "intermediate",
-          "time": "12 min",
-          "summary": "Master format strings, Display, Debug, and custom formatting.",
-          "keywords": "format println Display Debug fmt Formatter width precision alignment padding"
+          "time": "22 min",
+          "summary": "The whole format spec, float and Debug surprises, honouring width and precision in your own impls, and format_args!.",
+          "keywords": "format println Display Debug fmt Formatter width precision alignment padding format spec fill align sign alternate precision width runtime f.pad pad_integral Formatter debug_struct debug_list redact format_args dbg round half to even"
         }
       ]
     },
@@ -1203,27 +1203,27 @@
           "title": "Project: A Web Service",
           "file": "project-web.md",
           "level": "advanced",
-          "time": "26 min",
-          "summary": "Build a JSON REST API with axum, state, and a database.",
-          "keywords": "project web api axum rest json crud database async server"
+          "time": "20 min",
+          "summary": "A complete axum JSON API: typed extractors, an IntoResponse error type, server-free tests, tower layers and graceful shutdown.",
+          "keywords": "project web api axum rest json crud database async server IntoResponse AppError thiserror extractors Query Path Json State oneshot tower ServiceExt TraceLayer TimeoutLayer CorsLayer graceful shutdown axum 0.8 braces 415 422 405"
         },
         {
           "id": "project-wasm",
           "title": "Project: WebAssembly in the Browser",
           "file": "project-wasm.md",
           "level": "advanced",
-          "time": "18 min",
-          "summary": "Compile Rust to WASM and run it on a web page.",
-          "keywords": "wasm webassembly wasm-bindgen wasm-pack browser javascript frontend"
+          "time": "24 min",
+          "summary": "Compile Rust to WebAssembly: when it actually wins (measured), the JS boundary, zero-copy buffers, and debugging.",
+          "keywords": "wasm webassembly wasm-bindgen wasm-pack browser javascript frontend linear memory boundary zero-copy pixels_ptr Uint8ClampedArray detached ArrayBuffer console_error_panic_hook wasm-pack test twiggy wasm-opt cdylib rlib web-sys js-sys BigInt"
         },
         {
           "id": "project-embedded",
           "title": "A Taste of Embedded Rust",
           "file": "project-embedded.md",
           "level": "advanced",
-          "time": "15 min",
-          "summary": "Blink an LED and learn no_std, the embedded way.",
-          "keywords": "embedded no_std microcontroller hal gpio bare metal cortex embedded-hal"
+          "time": "22 min",
+          "summary": "no_std on real hardware: panic handlers, heapless collections, interrupt-safe sharing, the memory map, and measured binary sizes.",
+          "keywords": "embedded no_std microcontroller hal gpio bare metal cortex embedded-hal panic_handler panic-halt heapless critical section interrupt::free Mutex RefCell exception SysTick memory.x thumbv7em vector_table bss defmt flip-link rtic probe-rs size"
         }
       ]
     },
@@ -1235,7 +1235,7 @@
           "title": "Big-O & How to Think About Algorithms",
           "file": "dsa-intro.md",
           "level": "beginner",
-          "time": "16 min",
+          "time": "18 min",
           "summary": "Complexity, trade-offs, and how to reason about performance.",
           "keywords": "big-o complexity time space asymptotic analysis algorithms data structures"
         },
@@ -1244,7 +1244,7 @@
           "title": "Arrays, Vectors & Dynamic Arrays",
           "file": "dsa-arrays.md",
           "level": "beginner",
-          "time": "14 min",
+          "time": "22 min",
           "summary": "Contiguous memory, amortized growth, and cache friendliness.",
           "keywords": "array vector dynamic array amortized capacity cache locality two pointers"
         },
@@ -1253,7 +1253,7 @@
           "title": "Linked Lists (the Hard Way)",
           "file": "dsa-linked-list.md",
           "level": "advanced",
-          "time": "18 min",
+          "time": "24 min",
           "summary": "Why linked lists fight the borrow checker, and how to build them right.",
           "keywords": "linked list Box Option singly doubly Rc RefCell too many linked lists"
         },
@@ -1262,7 +1262,7 @@
           "title": "Stacks & Queues",
           "file": "dsa-stack-queue.md",
           "level": "beginner",
-          "time": "12 min",
+          "time": "18 min",
           "summary": "LIFO and FIFO structures and their many uses.",
           "keywords": "stack queue LIFO FIFO VecDeque push pop deque monotonic stack"
         },
@@ -1271,7 +1271,7 @@
           "title": "Hash Tables from Scratch",
           "file": "dsa-hashing.md",
           "level": "intermediate",
-          "time": "16 min",
+          "time": "20 min",
           "summary": "How hashing, collisions, and load factors actually work.",
           "keywords": "hash table hashing collision chaining open addressing load factor buckets"
         },
@@ -1280,7 +1280,7 @@
           "title": "Binary Trees & Binary Search Trees",
           "file": "dsa-trees.md",
           "level": "intermediate",
-          "time": "16 min",
+          "time": "20 min",
           "summary": "Tree traversals and ordered data with BSTs.",
           "keywords": "binary tree BST traversal inorder preorder postorder insert search recursion"
         },
@@ -1289,7 +1289,7 @@
           "title": "Balanced Trees: AVL & Red-Black",
           "file": "dsa-balanced-trees.md",
           "level": "advanced",
-          "time": "18 min",
+          "time": "16 min",
           "summary": "Keep trees balanced so operations stay O(log n).",
           "keywords": "AVL red-black tree rotation balance factor self-balancing BTreeMap"
         },
@@ -1298,7 +1298,7 @@
           "title": "Heaps & Priority Queues",
           "file": "dsa-heaps.md",
           "level": "intermediate",
-          "time": "13 min",
+          "time": "20 min",
           "summary": "Binary heaps, heapify, and BinaryHeap in std.",
           "keywords": "heap priority queue binary heap heapify sift BinaryHeap Reverse min-heap"
         },
@@ -1307,9 +1307,18 @@
           "title": "Tries & Prefix Trees",
           "file": "dsa-tries.md",
           "level": "intermediate",
-          "time": "13 min",
+          "time": "16 min",
           "summary": "Fast prefix lookups for autocomplete and dictionaries.",
           "keywords": "trie prefix tree autocomplete dictionary string search radix"
+        },
+        {
+          "id": "dsa-tree-algorithms",
+          "title": "Tree Algorithms: Traversal, LCA & Tree DP",
+          "file": "dsa-tree-algorithms.md",
+          "level": "intermediate",
+          "time": "26 min",
+          "summary": "The four tree traversals and what each is for, plus lowest common ancestor by binary lifting, diameter, serialization, BST validation, and tree DP.",
+          "keywords": "tree traversal preorder inorder postorder level order bfs dfs iterative stack queue vecdeque lowest common ancestor lca binary lifting depth ancestor diameter two bfs serialize deserialize null marker validate bst range bounds tree dp independent set vertex cover postorder subtree height leaves stack overflow arena"
         },
         {
           "id": "dsa-graphs",
@@ -1325,7 +1334,7 @@
           "title": "Graph Traversal: BFS & DFS",
           "file": "dsa-graph-traversal.md",
           "level": "intermediate",
-          "time": "15 min",
+          "time": "20 min",
           "summary": "Explore graphs breadth-first and depth-first.",
           "keywords": "BFS DFS traversal queue stack visited connected components topological"
         },
@@ -1343,7 +1352,7 @@
           "title": "Minimum Spanning Trees",
           "file": "dsa-mst.md",
           "level": "advanced",
-          "time": "13 min",
+          "time": "14 min",
           "summary": "Connect everything at the lowest cost with Kruskal & Prim.",
           "keywords": "minimum spanning tree kruskal prim union find greedy weighted graph"
         },
@@ -1352,9 +1361,18 @@
           "title": "Union-Find / Disjoint Set",
           "file": "dsa-union-find.md",
           "level": "intermediate",
-          "time": "12 min",
+          "time": "16 min",
           "summary": "Track connected groups with near-constant-time operations.",
           "keywords": "union find disjoint set path compression union by rank connectivity"
+        },
+        {
+          "id": "dsa-graph-advanced",
+          "title": "Advanced Graph Algorithms",
+          "file": "dsa-graph-advanced.md",
+          "level": "advanced",
+          "time": "24 min",
+          "summary": "Strongly connected components with Tarjan and Kosaraju, bridges and articulation points via lowlink, Eulerian paths with Hierholzer, and solving 2-SAT as a graph problem.",
+          "keywords": "strongly connected component scc tarjan kosaraju lowlink low link tin discovery time condensation dag bridge cut edge articulation point cut vertex biconnected eulerian path circuit hierholzer degree parity konigsberg hamiltonian 2-sat two sat implication graph satisfiability dfs directed undirected parallel edges stack overflow"
         },
         {
           "id": "dsa-sorting",
@@ -1370,7 +1388,7 @@
           "title": "Searching Algorithms",
           "file": "dsa-searching.md",
           "level": "beginner",
-          "time": "12 min",
+          "time": "16 min",
           "summary": "Linear search, binary search, and search variants.",
           "keywords": "binary search linear search lower bound upper bound rotated array binary_search"
         },
@@ -1379,7 +1397,7 @@
           "title": "Recursion & Backtracking",
           "file": "dsa-recursion.md",
           "level": "intermediate",
-          "time": "15 min",
+          "time": "16 min",
           "summary": "Solve problems by breaking them down — permutations, N-Queens.",
           "keywords": "recursion backtracking base case permutations combinations n-queens subsets maze"
         },
@@ -1388,7 +1406,7 @@
           "title": "Divide & Conquer",
           "file": "dsa-divide-conquer.md",
           "level": "intermediate",
-          "time": "12 min",
+          "time": "16 min",
           "summary": "Split, solve, and combine — the pattern behind merge sort.",
           "keywords": "divide conquer merge sort master theorem recurrence binary search quickselect"
         },
@@ -1397,7 +1415,7 @@
           "title": "Greedy Algorithms",
           "file": "dsa-greedy.md",
           "level": "intermediate",
-          "time": "13 min",
+          "time": "18 min",
           "summary": "Make the locally best choice — when it works and when it fails.",
           "keywords": "greedy interval scheduling huffman coin change activity selection exchange argument"
         },
@@ -1415,7 +1433,7 @@
           "title": "String Algorithms",
           "file": "dsa-strings.md",
           "level": "advanced",
-          "time": "15 min",
+          "time": "16 min",
           "summary": "Pattern matching with KMP, Rabin-Karp, and tries.",
           "keywords": "string algorithms KMP rabin-karp z-algorithm pattern matching hashing suffix"
         },
@@ -1424,7 +1442,7 @@
           "title": "Bit Manipulation",
           "file": "dsa-bit-manipulation.md",
           "level": "intermediate",
-          "time": "12 min",
+          "time": "18 min",
           "summary": "Bitwise tricks, masks, and bit sets in Rust.",
           "keywords": "bit manipulation bitwise mask shift xor count_ones popcount bit set flags"
         },
@@ -1433,7 +1451,7 @@
           "title": "Segment Trees, Fenwick Trees & Beyond",
           "file": "dsa-advanced.md",
           "level": "advanced",
-          "time": "17 min",
+          "time": "16 min",
           "summary": "Range queries and advanced structures for competitive programming.",
           "keywords": "segment tree fenwick binary indexed tree range query BIT lazy propagation competitive"
         },

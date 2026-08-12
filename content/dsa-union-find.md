@@ -138,6 +138,210 @@ fn main() {
 }
 ```
 
+## Proving the optimizations matter
+
+"Effectively constant time" is a strong claim. Here it is measured — the same 20,000 unions in an adversarial order, with each optimization switched on and off:
+
+```rust
+struct Dsu {
+    parent: Vec<usize>,
+    rank: Vec<usize>,
+    compress: bool,
+    by_rank: bool,
+    steps: u64, // how many parent pointers we followed in total
+}
+
+impl Dsu {
+    fn new(n: usize, compress: bool, by_rank: bool) -> Self {
+        Dsu { parent: (0..n).collect(), rank: vec![0; n], compress, by_rank, steps: 0 }
+    }
+
+    /// Iterative find — no recursion, so a deep chain can't overflow the stack.
+    fn find(&mut self, x: usize) -> usize {
+        let mut root = x;
+        while self.parent[root] != root {
+            root = self.parent[root];
+            self.steps += 1;
+        }
+        if self.compress {
+            // Second pass: re-point everything on the path straight at the root.
+            let mut cur = x;
+            while self.parent[cur] != root {
+                let next = self.parent[cur];
+                self.parent[cur] = root;
+                cur = next;
+            }
+        }
+        root
+    }
+
+    fn union(&mut self, a: usize, b: usize) -> bool {
+        let (ra, rb) = (self.find(a), self.find(b));
+        if ra == rb {
+            return false;
+        }
+        if !self.by_rank {
+            self.parent[ra] = rb; // naive: pick a direction arbitrarily
+            return true;
+        }
+        if self.rank[ra] < self.rank[rb] {
+            self.parent[ra] = rb;
+        } else if self.rank[ra] > self.rank[rb] {
+            self.parent[rb] = ra;
+        } else {
+            self.parent[rb] = ra;
+            self.rank[ra] += 1;
+        }
+        true
+    }
+
+    fn max_depth(&self) -> usize {
+        (0..self.parent.len())
+            .map(|mut x| {
+                let mut d = 0;
+                while self.parent[x] != x {
+                    x = self.parent[x];
+                    d += 1;
+                }
+                d
+            })
+            .max()
+            .unwrap_or(0)
+    }
+}
+
+fn main() {
+    let n = 20_000usize;
+    println!("{n} elements. Unions are issued as (0,1), (0,2), (0,3), … which is");
+    println!("the worst order for a naive DSU: it builds one long chain.\n");
+    println!("{:<26} {:>10} {:>14}", "configuration", "max depth", "find steps");
+    println!("{}", "-".repeat(52));
+
+    for &(compress, by_rank, name) in &[
+        (false, false, "neither optimization"),
+        (false, true, "union by rank only"),
+        (true, false, "path compression only"),
+        (true, true, "both (the real thing)"),
+    ] {
+        let mut dsu = Dsu::new(n, compress, by_rank);
+        for i in 1..n {
+            dsu.union(0, i);
+        }
+        for i in 0..n {
+            dsu.find(i); // one query per element
+        }
+        println!("{:<26} {:>10} {:>14}", name, dsu.max_depth(), dsu.steps);
+    }
+    println!("\nWithout either, the structure degenerates to a linked list and the");
+    println!("total work is quadratic. With both, every node points at the root.");
+}
+```
+
+> [!performance] 400 million steps versus 20 thousand
+> The unoptimized version follows **399,960,001** parent pointers to answer 20,000 queries, with a maximum depth of 19,999 — it has become a linked list, and the total work is O(n²). Adding *either* optimization collapses that to a depth of **1** and roughly 20,000–80,000 steps: a factor of five thousand to twenty thousand.
+>
+> One honesty note about this particular experiment: because every union here goes through the same root, **union by rank alone** already flattens it, so this input doesn't separate the two optimizations from each other. Other adversarial orders do — union by rank alone can still leave O(log n) depth, and path compression alone can too. The theoretical **O(α(n))** guarantee requires *both*. What the table does show unambiguously is that omitting them both is catastrophic, not merely slower.
+
+> [!warning] Prefer the iterative `find` — the recursive one can overflow
+> The implementation earlier in this chapter uses recursion, which is elegant and matches how the algorithm is usually written. But it recurses once per level of the tree, and an un-optimized (or adversarially built) DSU can be tens of thousands of levels deep — exactly the case the table above constructs. That's a stack overflow, and it aborts the process rather than panicking cleanly.
+>
+> The `find` above avoids it entirely: walk to the root in a loop, then walk again to re-point. Two passes, no recursion, same complexity. There's also **path halving**, a one-pass variant that sets each node's parent to its *grandparent* as it climbs — slightly less flattening per call, but often faster in practice because it touches memory once instead of twice.
+
+## A more useful DSU: sizes and component counts
+
+Two small additions make union-find far more practical: track each group's **size**, and maintain a running **count** of groups. Both come almost free, and union by size works just as well as union by rank.
+
+```rust
+/// Union by SIZE — the size is useful information in its own right.
+struct Dsu {
+    parent: Vec<usize>,
+    size: Vec<usize>,
+    groups: usize, // maintained, so counting is O(1)
+}
+
+impl Dsu {
+    fn new(n: usize) -> Self {
+        Dsu { parent: (0..n).collect(), size: vec![1; n], groups: n }
+    }
+
+    fn find(&mut self, x: usize) -> usize {
+        let mut root = x;
+        while self.parent[root] != root {
+            root = self.parent[root];
+        }
+        let mut cur = x;
+        while self.parent[cur] != root {
+            let next = self.parent[cur];
+            self.parent[cur] = root;
+            cur = next;
+        }
+        root
+    }
+
+    fn union(&mut self, a: usize, b: usize) -> bool {
+        let (mut ra, mut rb) = (self.find(a), self.find(b));
+        if ra == rb {
+            return false;
+        }
+        // Attach the smaller group under the larger one.
+        if self.size[ra] < self.size[rb] {
+            std::mem::swap(&mut ra, &mut rb);
+        }
+        self.parent[rb] = ra;
+        self.size[ra] += self.size[rb];
+        self.groups -= 1;
+        true
+    }
+
+    fn connected(&mut self, a: usize, b: usize) -> bool {
+        self.find(a) == self.find(b)
+    }
+
+    /// Size of the group containing x.
+    fn group_size(&mut self, x: usize) -> usize {
+        let root = self.find(x);
+        self.size[root]
+    }
+
+    /// O(1) — no scan needed, because union maintains it.
+    fn group_count(&self) -> usize {
+        self.groups
+    }
+}
+
+fn main() {
+    let mut dsu = Dsu::new(10);
+    println!("10 elements → {} groups", dsu.group_count());
+    for &(a, b) in &[(0, 1), (2, 3), (1, 3), (4, 5), (6, 7), (7, 8)] {
+        dsu.union(a, b);
+        println!("  union({a},{b}) → {} groups", dsu.group_count());
+    }
+
+    println!("\nconnected(0,3)  {}", dsu.connected(0, 3));
+    println!("connected(0,5)  {}", dsu.connected(0, 5));
+    println!("group_size(0)   {}   (0,1,2,3)", dsu.group_size(0));
+    println!("group_size(6)   {}   (6,7,8)", dsu.group_size(6));
+    println!("group_size(9)   {}   (alone)", dsu.group_size(9));
+
+    // Cycle detection: `union` returning false means "already connected".
+    println!("\nadding a triangle 0-1, 1-2, 2-0:");
+    let mut tri = Dsu::new(3);
+    for &(a, b) in &[(0, 1), (1, 2), (2, 0)] {
+        if tri.union(a, b) {
+            println!("  edge ({a},{b}) added");
+        } else {
+            println!("  edge ({a},{b}) would close a CYCLE");
+        }
+    }
+}
+```
+
+> [!best] Maintain the group count in `union`, don't recount
+> Counting distinct roots means calling `find` on every element — O(n·α(n)) each time you ask. But every successful `union` reduces the group count by exactly one, so a single `groups` field kept up to date answers it in **O(1)**. It's the same principle as the `passing` counter in the [tries chapter](#/ch/dsa-tries): if a query is asked often, maintain its answer during mutation instead of computing it on demand. Just remember the corollary — a maintained field must be updated on *every* path that changes the structure, or it drifts silently.
+
+> [!note] Union by size or union by rank? Either is fine
+> Rank is an upper bound on tree height; size is the number of elements. Both give the same O(α(n)) guarantee, and in practice they perform almost identically. Prefer **size** when the count is useful to you anyway — "how big is this connected component?" is a common question, and rank can't answer it. Prefer **rank** when you want the smaller integer (ranks stay under log n, sizes go up to n), which occasionally matters for memory.
+
 ## Where union-find shines
 
 > [!key] The killer applications
@@ -164,13 +368,21 @@ fn main() {
 
 - **Union-Find (DSU)** tracks a partition of elements into disjoint groups, supporting **union** (merge groups) and **find**/**connected** (same group?).
 - Each group is a **tree**; every element points toward its group's **root** (representative).
-- **Path compression** (flatten during `find`) + **union by rank** (attach shorter under taller) give **~O(1) amortized** (inverse-Ackermann) operations.
+- **Path compression** (flatten during `find`) + **union by rank** (attach shorter under taller) give **~O(1) amortized** (inverse-Ackermann) operations. The theoretical bound needs **both**.
+- Measured: with neither optimization, 20,000 queries cost **400 million** pointer hops at depth 19,999. With them, **20,000** hops at depth 1.
+- Prefer the **iterative `find`** — the recursive version overflows the stack on a deep tree, which is exactly the case a missing optimization creates. **Path halving** is a one-pass alternative.
+- Track **size** rather than rank when you want `group_size`, and maintain a **`groups` counter** in `union` so counting components is O(1) instead of O(n·α(n)).
 - It powers **Kruskal's MST**, **cycle detection**, **connected components**, and dynamic-connectivity problems generally.
 - It's small, fast, and borrow-checker-friendly (just a `Vec<usize>`) — a great one to memorize.
 
 > [!exercise] Try it yourself
-> 1. Add a `count_groups(&mut self) -> usize` that counts how many distinct roots remain.
+> 1. Add a `largest_group(&mut self) -> usize` returning the size of the biggest component, in O(1).
 > 2. Use union-find to detect whether adding edges `[(0,1),(1,2),(2,0)]` to a graph forms a cycle (the third edge should).
-> 3. Track group **sizes** instead of ranks ("union by size") and add a `group_size(x)` method.
+> 3. Implement `find_halving` (point each node at its grandparent while climbing) and compare its step count against two-pass compression on the 20,000-element benchmark.
+> 4. Build the adversarial input where **union by rank alone** still leaves depth O(log n). What union order achieves that?
+> 5. Union 200,000 elements with *neither* optimization, then call the **recursive** `find`. Explain what happens and why the iterative version survives.
+> 6. Remove the `self.groups -= 1` line and write a `group_count` that scans instead. Time both at n = 100,000.
+> 7. Union-find cannot **split** a group. Why not — what would `undo(a, b)` have to reverse? Look up "DSU with rollback" and describe what it gives up to support it.
+> 8. Extend the DSU with a **parity** bit per element (`same` or `opposite` group) so it can answer "is this graph bipartite?" as edges arrive.
 
 We've built the core data structures. Next we turn to the richest problem domain of all — **graphs**.

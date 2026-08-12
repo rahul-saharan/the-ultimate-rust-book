@@ -85,6 +85,127 @@ fn main() {
 
 Recursing into only *one* half (not both, like merge sort) is what makes quickselect O(n) instead of O(n log n) — a beautiful illustration of how the "combine" step's cost shapes the whole.
 
+## Example: counting inversions
+
+Some problems have no obvious "divide" step until you notice that the *merge* can do extra work for free. **Counting inversions** — pairs that are out of order, a measure of how unsorted a list is — looks inherently quadratic, but merge sort's combine step can count them at no extra asymptotic cost:
+
+```rust
+/// Sort and count inversions (pairs i < j where a[i] > a[j]) in O(n log n).
+fn count_inversions(a: &[i32]) -> (Vec<i32>, u64) {
+    if a.len() <= 1 {
+        return (a.to_vec(), 0);
+    }
+    let mid = a.len() / 2;
+    let (left, left_inversions) = count_inversions(&a[..mid]);
+    let (right, right_inversions) = count_inversions(&a[mid..]);
+
+    let mut merged = Vec::with_capacity(a.len());
+    let (mut i, mut j) = (0, 0);
+    let mut crossing = 0u64;
+
+    while i < left.len() && j < right.len() {
+        if left[i] <= right[j] {
+            merged.push(left[i]);
+            i += 1;
+        } else {
+            // left[i..] are ALL greater than right[j], because left is sorted —
+            // so this one comparison reveals that many inversions at once.
+            crossing += (left.len() - i) as u64;
+            merged.push(right[j]);
+            j += 1;
+        }
+    }
+    merged.extend_from_slice(&left[i..]);
+    merged.extend_from_slice(&right[j..]);
+
+    (merged, left_inversions + right_inversions + crossing)
+}
+
+/// The obvious O(n²) version, to check against.
+fn brute_force(a: &[i32]) -> u64 {
+    let mut count = 0;
+    for i in 0..a.len() {
+        for j in i + 1..a.len() {
+            if a[i] > a[j] {
+                count += 1;
+            }
+        }
+    }
+    count
+}
+
+fn main() {
+    for input in [vec![1, 2, 3, 4], vec![4, 3, 2, 1], vec![2, 4, 1, 3, 5], vec![5, 5, 5], vec![]] {
+        let (sorted, fast) = count_inversions(&input);
+        let slow = brute_force(&input);
+        // Format to a String first — `{:<16?}` on a Vec pads each ELEMENT.
+        println!("{:<18} → {:<18} inversions {fast}  (brute {slow}) {}",
+            format!("{input:?}"),
+            format!("{sorted:?}"),
+            if fast == slow { "✓" } else { "✗" });
+    }
+    println!("\nA sorted list has 0; a reversed list of n has n(n-1)/2 — the maximum.");
+}
+```
+
+> [!key] Why one comparison can count many inversions
+> The line that makes this O(n log n) rather than O(n²) is `crossing += left.len() - i`. When `right[j]` is smaller than `left[i]`, it must also be smaller than **every remaining element of `left`** — because `left` is already sorted. So a single comparison accounts for a whole batch of inversions at once, and the total work stays proportional to the merge.
+>
+> This is the general lesson for divide and conquer: the interesting content usually lives in the **combine** step. Splitting is mechanical; what you can compute *while* merging is where new algorithms come from. Closest-pair-of-points and Karatsuba below both work the same way.
+
+## Example: Karatsuba multiplication
+
+Schoolbook multiplication of two `n`-digit numbers takes `n²` digit products. In 1960 Karatsuba found that **three** half-size multiplications suffice where you'd expect four — and that one saved multiplication changes the exponent:
+
+```rust
+/// Karatsuba multiplication, counting the recursive base multiplications.
+fn karatsuba(x: u64, y: u64, mults: &mut u64) -> u64 {
+    if x < 10 || y < 10 {
+        *mults += 1;
+        return x * y; // base case: a single digit product
+    }
+
+    let digits = x.max(y).ilog10() + 1;
+    let half = digits / 2;
+    let p = 10u64.pow(half);
+    let (x1, x0) = (x / p, x % p); // high and low halves
+    let (y1, y0) = (y / p, y % p);
+
+    let z0 = karatsuba(x0, y0, mults); // low × low
+    let z2 = karatsuba(x1, y1, mults); // high × high
+    // The trick: (x1+x0)(y1+y0) expands to z2 + middle + z0,
+    // so the middle term costs ONE multiplication instead of two.
+    let z1 = karatsuba(x1 + x0, y1 + y0, mults) - z2 - z0;
+
+    z2 * p * p + z1 * p + z0
+}
+
+/// Digit products the schoolbook method would need.
+fn schoolbook_mults(x: u64, y: u64) -> u64 {
+    let dx = if x < 10 { 1 } else { x.ilog10() + 1 };
+    let dy = if y < 10 { 1 } else { y.ilog10() + 1 };
+    (dx * dy) as u64
+}
+
+fn main() {
+    println!("{:>12} {:>12} {:>20} {:>10} {:>11}", "x", "y", "product", "karatsuba", "schoolbook");
+    println!("{}", "-".repeat(70));
+    for (x, y) in [(12u64, 34u64), (1234, 5678), (12345678, 87654321)] {
+        let mut mults = 0;
+        let product = karatsuba(x, y, &mut mults);
+        assert_eq!(product, x * y);
+        println!("{x:>12} {y:>12} {product:>20} {mults:>10} {:>11}", schoolbook_mults(x, y));
+    }
+    println!("\nT(n) = 3T(n/2) + O(n)  →  O(n^log2(3)) = O(n^1.585), beating O(n^2).");
+    println!("Three subproblems instead of four is the entire difference.");
+}
+```
+
+> [!performance] 33 multiplications instead of 64
+> For two eight-digit numbers, Karatsuba does **33** base multiplications where the schoolbook method does **64**. Feed the recurrence to the Master Theorem: `a = 3`, `b = 2`, `f(n) = O(n)`, so `n^(log₂ 3) = n^1.585` grows faster than `f(n)` — case 1, leaves dominate, **O(n^1.585)**.
+>
+> Two honest caveats. This simple version splits by digit count, so **uneven splits** (a nine-digit number) waste some of the advantage — production implementations pad to a convenient size. And the constant factor is worse: three multiplications plus several additions and subtractions beats four multiplications only once `n` is large enough. That's why real bignum libraries use schoolbook below a threshold (often ~30–60 digits) and switch to Karatsuba above it — and to even faster FFT-based methods for very large inputs.
+
 ## Analyzing cost: the Master Theorem
 
 How do we find the Big-O of a divide-and-conquer algorithm? Its running time follows a **recurrence** like `T(n) = a·T(n/b) + f(n)`, where you split into `a` subproblems of size `n/b` and spend `f(n)` work dividing/combining. The **Master Theorem** reads off the answer:
@@ -110,6 +231,36 @@ How do we find the Big-O of a divide-and-conquer algorithm? Its running time fol
 > [!tip] The intuition without the formula
 > You don't need to memorize the Master Theorem's cases. Just reason about the **recursion tree**: how many levels deep (usually `log n`, since you halve), and how much total work per level. Merge sort does O(n) work at *every* level across `log n` levels → **O(n log n)**. Binary search does O(1) work at each of `log n` levels → **O(log n)**. Count "work per level × number of levels" and you'll get the answer for most divide-and-conquer algorithms.
 
+Making that concrete for merge sort on 8 elements — the work per level is what drives the result:
+
+| Level | Subproblems | Size each | Work per subproblem | Work at this level |
+|---|---|---|---|---|
+| 0 | 1 | 8 | merge 8 | 8 |
+| 1 | 2 | 4 | merge 4 | 8 |
+| 2 | 4 | 2 | merge 2 | 8 |
+| 3 | 8 | 1 | base case | 8 |
+| | | | | **8 × 4 levels = 32** |
+
+The rightmost column is constant, and there are `log₂ 8 + 1 = 4` levels — hence `n log n`. Change the per-level work and the answer changes with it: binary search does O(1) per level (only one subproblem survives), giving O(log n); quickselect does O(n) at the top but the levels *shrink geometrically*, summing to O(n) rather than O(n log n).
+
+### The three cases, for reference
+
+When you do want the formula, `T(n) = a·T(n/b) + f(n)` has three outcomes, decided by comparing `f(n)` against `n^(log_b a)` — the total work in the leaves:
+
+| Case | Condition | Result | Dominated by | Example |
+|---|---|---|---|---|
+| 1 | `f(n)` grows **slower** | `O(n^(log_b a))` | the **leaves** | binary tree traversal: `2T(n/2) + O(1)` → O(n) |
+| 2 | `f(n)` grows **the same** | `O(n^(log_b a) · log n)` | **every level equally** | merge sort: `2T(n/2) + O(n)` → O(n log n) |
+| 3 | `f(n)` grows **faster** | `O(f(n))` | the **root** | `2T(n/2) + O(n²)` → O(n²) |
+
+> [!key] The whole theorem is "who does the most work: the top, the bottom, or everyone equally?"
+> That's genuinely all it says. Split into `a` subproblems of size `n/b` and the leaf count is `n^(log_b a)`. Compare that against the combine work `f(n)`:
+> - Leaves win → the recursion's *branching* dominates (case 1).
+> - Tie → every level costs the same, so multiply by the number of levels, `log n` (case 2).
+> - Root wins → the top-level combine dominates and the recursion is almost free (case 3).
+>
+> Merge sort is the tie case, which is why that `log n` factor appears. Quickselect avoids it by recursing into only *one* half — the levels then shrink geometrically instead of staying constant, and `n + n/2 + n/4 + … = 2n`. That single difference between "recurse into both halves" and "recurse into one" is worth more than the theorem itself.
+
 ## When divide and conquer shines
 
 > [!best] Recognize the divide-and-conquer opportunity
@@ -119,12 +270,21 @@ How do we find the Big-O of a divide-and-conquer algorithm? Its running time fol
 
 - **Divide and conquer** = **divide** into subproblems, **conquer** (solve recursively), **combine** — a structured recursion with *multiple* same-shaped subproblems.
 - Examples: **merge/quick sort** (O(n log n)), **binary search** & **fast power** (O(log n)), **quickselect** (O(n) average — recurses into only *one* half).
-- Analyze cost via the recurrence `T(n) = a·T(n/b) + f(n)` — or intuitively, "work per level × number of levels" over the recursion tree.
+- Analyze cost via the recurrence `T(n) = a·T(n/b) + f(n)` — or intuitively, **work per level × number of levels**.
+- The Master Theorem just asks **who does the most work: the leaves, the root, or every level equally?** Merge sort is the tie case, which is where its `log n` comes from.
+- **Recursing into one half instead of both** turns constant per-level work into a geometric series — that's why quickselect is O(n) and merge sort O(n log n).
+- The interesting content usually lives in the **combine** step: counting inversions rides along with merge sort at no extra cost, because one comparison against a sorted half reveals a whole batch at once.
+- **Karatsuba** does three half-size multiplications instead of four — **33 vs 64** digit products for eight digits — giving O(n^1.585). Its constant factor is worse, so real libraries switch over only above a threshold.
 - It shines when problems split into independent subproblems, and those subproblems are naturally **parallelizable**.
 
 > [!exercise] Try it yourself
 > 1. Use `power` to compute `2^30` and confirm it takes far fewer multiplications than the naive loop.
-> 2. Implement "count inversions" (pairs out of order) as a modified merge sort in O(n log n).
-> 3. Draw the recursion tree for merge-sorting 8 elements and count the work per level to see the O(n log n).
+> 2. Build the recursion-tree table above for merge sort on 16 elements. What changes, and what stays the same?
+> 3. Modify `count_inversions` to count only inversions **spanning the two halves**, and confirm the totals still add up.
+> 4. Feed `count_inversions` a reversed list of 100 elements. Does it return `n(n-1)/2`? Why is that the maximum possible?
+> 5. Run Karatsuba on two nine-digit numbers and explain why the multiplication count doesn't beat schoolbook there.
+> 6. Apply the Master Theorem to `T(n) = 4T(n/2) + O(n)`. Which case is it, and what algorithm has that shape?
+> 7. Parallelise `count_inversions` with [`rayon::join`](#/ch/rayon) so the two halves run concurrently. What makes this safe without any locking?
+> 8. Implement **quickselect's** worst case: find an input where it degrades to O(n²), then fix it by choosing a random pivot.
 
 We've covered the foundational algorithms. Now we build the classic *data structures* — starting with the one that famously fights Rust's borrow checker: the **linked list**.

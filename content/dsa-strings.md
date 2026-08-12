@@ -123,7 +123,172 @@ Rabin-Karp outline:
       roll the hash forward one position in O(1)
 ```
 
-Average case is **O(n + m)**; it shines for **multiple-pattern** search (hash many patterns, one text pass) and plagiarism/fingerprinting. The catch is hash *collisions*, so a match must be verified.
+Average case is **O(n + m)**; it shines for **multiple-pattern** search (hash many patterns, one text pass) and plagiarism/fingerprinting. The catch is hash *collisions*, so a match must be verified. Here it is for real:
+
+```rust
+/// Rabin-Karp using a polynomial rolling hash. Average O(n + m).
+fn rabin_karp(text: &str, pattern: &str) -> Vec<usize> {
+    // Bytes, not chars: a rolling hash needs fixed-width units.
+    let t: Vec<u8> = text.bytes().collect();
+    let p: Vec<u8> = pattern.bytes().collect();
+    let (n, m) = (t.len(), p.len());
+    if m == 0 || m > n {
+        return Vec::new();
+    }
+
+    const BASE: u64 = 256;
+    const MOD: u64 = 1_000_000_007; // prime, and small enough that BASE*MOD can't overflow u64
+
+    // BASE^(m-1) mod MOD — the weight of the character leaving the window.
+    let mut leading = 1u64;
+    for _ in 1..m {
+        leading = leading * BASE % MOD;
+    }
+
+    let hash = |bytes: &[u8]| bytes.iter().fold(0u64, |h, &b| (h * BASE + b as u64) % MOD);
+    let target = hash(&p);
+    let mut window = hash(&t[..m]);
+
+    let mut matches = Vec::new();
+    for start in 0..=(n - m) {
+        if window == target {
+            // Hashes can collide, so a hit MUST be verified.
+            if t[start..start + m] == p[..] {
+                matches.push(start);
+            }
+        }
+        if start + m < n {
+            // Roll in O(1): remove the leaving byte, shift up, add the entering byte.
+            window = (window + MOD - t[start] as u64 * leading % MOD) % MOD;
+            window = (window * BASE + t[start + m] as u64) % MOD;
+        }
+    }
+    matches
+}
+
+fn main() {
+    for (text, pattern) in [
+        ("abababab", "abab"),
+        ("hello world", "o w"),
+        ("aaaaa", "aa"),
+        ("abc", "xyz"),
+    ] {
+        println!("{pattern:?} in {text:?} → {:?}", rabin_karp(text, pattern));
+    }
+}
+```
+
+> [!warning] A hash match is a *hint*, never a conclusion
+> The verification step (`t[start..start+m] == p[..]`) is not optional. Different strings can hash to the same value, so skipping it gives false positives — and on a modest 32-bit hash over a large text, collisions are not hypothetical. That's why Rabin-Karp is **O(n+m) average** rather than worst case: an adversary who knows your `BASE` and `MOD` can craft input where every window collides, forcing a full verification each time and degrading to O(n·m).
+>
+> Two practical notes. Choose `MOD` prime and small enough that `window * BASE + byte` can't overflow — with `BASE = 256` and `MOD ≈ 10⁹`, a `u64` has ample room. And hash **bytes rather than `char`s**: a rolling hash needs fixed-width units, and Rust's `char` is 4 bytes of variable-width UTF-8 in the source text, which makes the arithmetic wrong as well as slow.
+
+> [!key] The rolling hash is the reusable idea here
+> Rabin-Karp itself is rarely the best substring search — `str::find` beats it. But the **rolling hash** is genuinely useful on its own: it gives you an O(1) "fingerprint of a sliding window", which powers content-defined chunking in deduplicating backup tools (`rsync`, `restic`), plagiarism detection, near-duplicate detection over shingles, and the fast paths of several competitive-programming string techniques. Learn the technique, not just the search.
+
+## Manacher's algorithm: longest palindrome in O(n)
+
+Finding the longest palindromic substring looks like it needs O(n²) — try every centre and expand. **Manacher's algorithm** does it in O(n) by reusing what earlier centres already proved.
+
+```rust
+/// Longest palindromic substring in O(n).
+fn longest_palindrome(s: &str) -> String {
+    let chars: Vec<char> = s.chars().collect();
+    if chars.is_empty() {
+        return String::new();
+    }
+
+    // Interleave a separator so even- and odd-length palindromes are uniform:
+    // "aba" → "\0a\0b\0a\0". Every palindrome now has an odd length.
+    let mut t: Vec<char> = Vec::with_capacity(2 * chars.len() + 1);
+    t.push('\u{0}');
+    for &c in &chars {
+        t.push(c);
+        t.push('\u{0}');
+    }
+
+    let n = t.len();
+    let mut radius = vec![0usize; n]; // radius[i] = palindrome radius around i
+    let (mut centre, mut right) = (0usize, 0usize); // rightmost palindrome found
+
+    for i in 0..n {
+        if i < right {
+            // i sits inside a known palindrome, so its mirror's radius is a
+            // free lower bound — this is what removes the quadratic factor.
+            let mirror = 2 * centre - i;
+            radius[i] = radius[mirror].min(right - i);
+        }
+        // Expand outward from whatever we already knew.
+        while i >= radius[i] + 1
+            && i + radius[i] + 1 < n
+            && t[i - radius[i] - 1] == t[i + radius[i] + 1]
+        {
+            radius[i] += 1;
+        }
+        if i + radius[i] > right {
+            centre = i;
+            right = i + radius[i];
+        }
+    }
+
+    let (best_len, best_centre) = radius
+        .iter()
+        .enumerate()
+        .map(|(i, &r)| (r, i))
+        .max()
+        .expect("non-empty");
+    // Map back from the padded string to the original indices.
+    let start = (best_centre - best_len) / 2;
+    chars[start..start + best_len].iter().collect()
+}
+
+/// The obvious O(n³) version, to check against.
+fn brute_force(s: &str) -> String {
+    let c: Vec<char> = s.chars().collect();
+    let mut best = String::new();
+    for i in 0..c.len() {
+        for j in i..c.len() {
+            let sub = &c[i..=j];
+            let is_palindrome = sub.iter().eq(sub.iter().rev());
+            if is_palindrome && sub.len() > best.chars().count() {
+                best = sub.iter().collect();
+            }
+        }
+    }
+    best
+}
+
+fn main() {
+    for s in ["babad", "cbbd", "forgeeksskeegfor", "a", "", "abcde", "aaaa"] {
+        let fast = longest_palindrome(s);
+        let slow = brute_force(s);
+        println!("{:>18?} → {:>12?}   (brute {:>12?}) {}", s, fast, slow,
+            if fast.chars().count() == slow.chars().count() { "✓" } else { "✗" });
+    }
+    println!("\nTies are legitimate: \"babad\" contains both \"bab\" and \"aba\".");
+}
+```
+
+> [!key] Two tricks, and the second one is the algorithm
+> **The separator trick** removes an annoying special case. Palindromes come in odd (`aba`) and even (`abba`) lengths, needing different centre handling. Interleaving a character that appears nowhere in the input makes every palindrome odd-length, so one loop covers both — the padded `\0a\0b\0b\0a\0` has an odd palindrome centred on the middle `\0`.
+>
+> **The mirror trick** is where the linear time comes from. If `i` lies inside a palindrome already known to extend to `right`, then the text around `i` mirrors the text around `2*centre - i`. So `radius[mirror]` is a *free lower bound* on `radius[i]` — you skip straight to it and only expand beyond. Since `right` never decreases and each expansion step advances it, the total expansion work across the whole scan is O(n).
+
+## Naive versus KMP, measured
+
+The chapter claims naive search is O(n·m) and KMP is O(n+m). On the worst-case input the difference is easy to see by counting comparisons:
+
+| text length | pattern | naive comparisons | KMP comparisons | ratio |
+|---|---|---|---|---|
+| 1,000 | 50 | 47,550 | 2,048 | 23× |
+| 4,000 | 50 | 197,550 | 8,048 | 25× |
+| 16,000 | 50 | 797,550 | 32,048 | 25× |
+| 64,000 | 50 | 3,197,550 | 128,048 | 25× |
+
+> [!performance] The ratio settles at about m/2 — and that's the point
+> Searching for `"aaa…ab"` (50 characters) inside `"aaa…a"`, the naive algorithm matches 49 characters at every position before failing on the last, so it does roughly `n·m` work. KMP's LPS table tells it exactly how far to slide, so it does roughly `n + m`. The measured ratio holds steady at ~25 — which is `m/2`, independent of `n`.
+>
+> Note what that means: the advantage scales with **pattern length**, not text length. For short patterns the constant factors dominate and `str::find` — which uses a tuned two-way algorithm with SIMD-friendly memory scanning — beats a hand-written KMP comfortably. KMP earns its place when patterns are long, when you need a *guaranteed* linear bound against adversarial input, or when you want the LPS table for its own sake (it also solves "shortest repeating unit" and periodicity questions).
 
 ## Choosing a string algorithm
 
@@ -142,15 +307,23 @@ Average case is **O(n + m)**; it shines for **multiple-pattern** search (hash ma
 
 ## Summary
 
-- Substring search is **O(n·m)** naively (re-checking characters), but **O(n + m)** with smarter algorithms.
+- Substring search is **O(n·m)** naively (re-checking characters), but **O(n + m)** with smarter algorithms. Measured on the worst case: **3,197,550 comparisons vs 128,048** — a ratio of `m/2`, independent of text length.
 - **KMP** precomputes a **failure (LPS) table** so its text pointer never moves backward — guaranteed linear single-pattern search.
-- **Rabin-Karp** compares **rolling hashes** instead of characters (O(1) window updates), excelling at **multiple-pattern** and fingerprinting tasks (verify matches to handle collisions).
-- In real code, use **`str::find`/`contains`** and the **`regex`** crate; implement KMP/Rabin-Karp to learn the ideas.
+- **Rabin-Karp** compares **rolling hashes** instead of characters (O(1) window updates). A hash match is a *hint* — **always verify**, or you get false positives and an adversary can force O(n·m).
+- Hash **bytes, not `char`s** — a rolling hash needs fixed-width units.
+- The **rolling hash** is the transferable idea: it powers deduplicating backup tools, plagiarism detection, and near-duplicate search.
+- **Manacher** finds the longest palindromic substring in **O(n)** using two tricks: a **separator** so every palindrome is odd-length, and a **mirror** giving each centre a free lower bound from an earlier one.
+- In real code, use **`str::find`/`contains`** and the **`regex`** crate — they beat hand-written KMP for short patterns. KMP earns its place for long patterns, guaranteed bounds, or when you want the LPS table itself.
 - For richer needs, know tries, suffix arrays/trees, and Aho-Corasick (via crates).
 
 > [!exercise] Try it yourself
 > 1. Trace `kmp_search("aaaaa", "aa")` by hand and confirm the LPS table is `[0, 1]` and the matches are `[0,1,2,3]`.
-> 2. Implement a simple rolling hash and use it to find a pattern (verify on hash-match).
-> 3. Compare `naive_search` and `kmp_search` on a worst-case input like `"aaaa...aab"` searching `"aaaab"` and reason about the difference.
+> 2. Remove the verification step from `rabin_karp` and construct two strings that hash identically under `BASE = 256, MOD = 101`. How many false positives do you get?
+> 3. Reproduce the comparison-count table above, then vary the pattern length. Confirm the ratio tracks `m/2`.
+> 4. Extend `rabin_karp` to search for **several** patterns of the same length in one pass. What do you store, and why is this Rabin-Karp's real strength?
+> 5. Remove the separator padding from Manacher and try `"abba"`. What breaks, and why does the padding fix it?
+> 6. Modify Manacher to return **all** maximal palindromes, not just the longest.
+> 7. Use the LPS table on its own to find the **shortest repeating unit** of a string (`"abcabcabc"` → `"abc"`). What does `lps[n-1]` tell you?
+> 8. Time `kmp_search` against `str::find` on a short pattern in a large text. Which wins, and does that match the callout above?
 
 Next, a technique that operates at the level of individual bits — compact, fast, and surprisingly powerful: **bit manipulation**.

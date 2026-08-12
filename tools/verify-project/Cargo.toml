@@ -13,6 +13,11 @@ regex = "1"
 anyhow = "1"
 thiserror = "1"
 itertools = "0.13"
+axum = "0.8"
+tower = "0.5"
+tower-http = { version = "0.6", features = ["trace", "cors", "timeout", "compression-gzip"] }
+tracing = "0.1"
+http-body-util = "0.1"
 
 [[bin]]
 name = "_placeholder"

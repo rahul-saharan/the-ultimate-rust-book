@@ -25,6 +25,41 @@ fn main() {
 > [!jargon] `fn` (the pointer) vs. `Fn` (the trait)
 > Lowercase **`fn`** is a concrete *type*: a pointer to a function. Capitalized **`Fn`** (and `FnMut`, `FnOnce`) are *traits* that both functions *and* closures implement. A function pointer implements all three `Fn` traits, so anywhere a closure is accepted, you can pass a plain function too — but not vice versa (a closure that captures variables isn't a bare `fn`).
 
+Since the chapter leans on those traits throughout, here they are side by side:
+
+| Bound | The closure may… | Callable | Implemented by |
+|---|---|---|---|
+| `FnOnce` | consume its captures | **once** | every closure, and `fn` |
+| `FnMut` | mutate its captures | repeatedly | closures that don't consume, and `fn` |
+| `Fn` | only read its captures | repeatedly, concurrently | closures that only borrow, and `fn` |
+| `fn` (the type) | capture **nothing** | repeatedly | plain functions, non-capturing closures |
+
+The traits nest: every `Fn` is also an `FnMut`, and every `FnMut` is also an `FnOnce`. So **take the loosest bound your code needs** — `FnOnce` accepts the most callers, `Fn` the fewest.
+
+> [!tip] A closure that captures nothing *does* coerce to `fn`
+> The "not vice versa" above has a useful exception. A closure with an empty capture list is compiled to an ordinary function, so it converts to a function pointer implicitly:
+> ```rust
+> fn main() {
+>     let f: fn(i32) -> i32 = |x| x + 1; // no captures → coerces to fn
+>     println!("{}", f(41));
+>
+>     // Which is why a non-capturing closure can go where `fn` is required:
+>     fn apply(g: fn(i32) -> i32, v: i32) -> i32 { g(v) }
+>     println!("{}", apply(|x| x * 2, 21));
+> }
+> ```
+> The moment it captures anything, that stops working — the closure now carries data, and a bare pointer has nowhere to put it. Sizes make this concrete: a non-capturing closure is **0 bytes**, one capturing an `i32` is **4 bytes**, and a `fn` pointer is **8 bytes** (with `Option<fn(..)>` also 8, thanks to the null niche).
+
+> [!mistake] "different fn items have unique types"
+> Every named function has its own unique, zero-sized *item* type — `add_one` is not of type `fn(i32) -> i32`, it's of an unnameable type that *coerces* to one. Usually inference handles it, but reassignment exposes the difference:
+> ```rust,ignore
+> let mut f = add_one;
+> f = sub_one;  // ❌ error[E0308]: expected fn item, found a different fn item
+>               //    note: different fn items have unique types, even if
+>               //          their signatures are the same
+> ```
+> ✅ Fix: annotate the variable so both coerce to the same pointer type — `let mut f: fn(i32) -> i32 = add_one;` — or cast with `add_one as fn(i32) -> i32`. (An array literal like `[add_one, sub_one]` infers the pointer type for you, so it works without help.)
+
 Because `fn` implements the `Fn` traits, you can pass a named function to any closure-accepting method — sometimes cleaner than a closure:
 
 ```rust
@@ -50,12 +85,28 @@ enum Status {
     Active(u32),
 }
 
+#[derive(Debug)]
+struct Meters(f64); // a tuple struct is a constructor function too
+
 fn main() {
     // Status::Active is a function `fn(u32) -> Status`, so map can use it directly:
     let statuses: Vec<Status> = (1..=3).map(Status::Active).collect();
     println!("{statuses:?}"); // [Active(1), Active(2), Active(3)]
+
+    let distances: Vec<Meters> = [1.5, 2.5].into_iter().map(Meters).collect();
+    println!("{distances:?}");
+
+    // `Some` and `Ok` are just tuple variants, so the same trick applies —
+    // and it reads better than `.map(|n| Some(n))`.
+    let wrapped: Vec<Option<i32>> = (1..=3).map(Some).collect();
+    let results: Vec<Result<i32, String>> = (1..=3).map(Ok).collect();
+    println!("{wrapped:?}");
+    println!("{results:?}");
 }
 ```
+
+> [!tip] This is why `.map(Some)` and `.ok_or_else(Vec::new)` read so cleanly
+> Anywhere a one-argument function is expected, a constructor name works: `.map(Some)`, `.map(Box::new)`, `.map(String::from)`, `.map(Meters)`. And for zero-argument cases, a path like `Vec::new` or `String::new` is a function too — hence `.unwrap_or_else(Vec::new)`. Clippy's `redundant_closure` lint will point these out for you: it flags `|n| Some(n)` and suggests `Some`.
 
 ## Returning closures
 
@@ -123,6 +174,51 @@ fn main() {
 <figcaption>Return <code>impl Fn</code> for a single closure type (fast); <code>Box&lt;dyn Fn&gt;</code> when different branches return different closures.</figcaption>
 </figure>
 
+### Returning `FnMut` and `FnOnce`
+
+`impl Fn` isn't the only option — the trait you return should match what the closure actually does. A closure that *mutates* its captures is `FnMut`, and one that *consumes* them is `FnOnce`:
+
+```rust
+// FnMut: keeps state between calls. This is a closure-based counter.
+fn make_counter() -> impl FnMut() -> u32 {
+    let mut count = 0;
+    move || {
+        count += 1;
+        count
+    }
+}
+
+// FnOnce: gives away the captured String, so it can only be called once.
+fn make_consumer(message: String) -> impl FnOnce() -> String {
+    move || message
+}
+
+fn main() {
+    // Note `mut` — calling an FnMut requires a mutable binding.
+    let mut next = make_counter();
+    println!("{} {} {}", next(), next(), next()); // 1 2 3
+
+    let counters = (make_counter(), make_counter());
+    let (mut a, mut b) = counters;
+    println!("independent: a={} b={}", a(), b()); // each has its own state
+
+    let once = make_consumer(String::from("delivered"));
+    println!("{}", once());
+    // once(); // ❌ would not compile: the closure was consumed
+}
+```
+
+> [!mistake] Forgetting `mut` when you hold an `FnMut`
+> `let counter = make_counter(); counter();` fails with *"cannot borrow `counter` as mutable"*. Calling an `FnMut` needs `&mut self`, so the binding must be `let mut counter`. The error names the right fix but doesn't explain why — and it surprises people, because "calling a function" doesn't feel like mutation. It is: the closure is a struct holding `count`, and calling it writes to that field.
+
+| Return | When | Cost |
+|---|---|---|
+| `impl Fn(..)` | one closure type, only reads captures | zero — static dispatch, inlinable |
+| `impl FnMut(..)` | one closure type, mutates captures | zero; caller needs `let mut` |
+| `impl FnOnce(..)` | one closure type, consumes captures | zero; callable once |
+| `Box<dyn Fn(..)>` | **different** closures per branch | heap allocation + dynamic dispatch |
+| `fn(..)` | no captures at all | a bare pointer, no allocation |
+
 > [!best] Reach for `impl Fn` first
 > Use **`impl Fn`** to return a closure whenever you can — it's zero-cost (static dispatch, no allocation) and usually all you need. Fall back to **`Box<dyn Fn>`** only when you genuinely must return *different* closure types (e.g. chosen at runtime, or stored together in a collection). This mirrors the [static vs. dynamic dispatch](#/ch/trait-objects) trade-off you already know.
 
@@ -132,13 +228,20 @@ fn main() {
 ## Summary
 
 - **`fn`** (lowercase) is the **function-pointer type**; **`Fn`/`FnMut`/`FnOnce`** (capitalized) are **traits** implemented by both functions and closures.
-- A function pointer implements the `Fn` traits, so you can pass a named function (or an **enum/tuple-struct constructor**, which *is* a function) anywhere a closure is expected.
-- **Return a closure** with **`impl Fn(...)`** for a single concrete type (static, zero-cost) or **`Box<dyn Fn(...)>`** when different branches return different closures (dynamic dispatch).
+- The traits **nest** — every `Fn` is an `FnMut`, every `FnMut` an `FnOnce` — so accept the **loosest** bound your code needs.
+- A function pointer implements the `Fn` traits, so you can pass a named function (or an **enum/tuple-struct constructor**, which *is* a function) anywhere a closure is expected. `.map(Some)` and `.map(Box::new)` work for exactly this reason.
+- A **non-capturing closure coerces to `fn`**; one that captures anything does not, because a bare pointer has nowhere to store the captures.
+- Each named function has a **unique zero-sized item type** that coerces to a pointer — which is why reassigning `f = other_fn` needs an explicit `fn(..)` annotation.
+- **Return a closure** with **`impl Fn(...)`** for a single concrete type (static, zero-cost) or **`Box<dyn Fn(...)>`** when different branches return different closures (dynamic dispatch). Use **`impl FnMut`** for a stateful closure and **`impl FnOnce`** for one that consumes its captures.
+- Holding an `FnMut` requires **`let mut`** — calling it mutates its captured state.
 - Returned closures almost always need **`move`**, since they outlive the function and must own their captures.
 
 > [!exercise] Try it yourself
 > 1. Write `fn apply_all(fs: &[fn(i32) -> i32], x: i32) -> Vec<i32>` and call it with an array of named functions.
 > 2. Write `make_multiplier(n) -> impl Fn(i32) -> i32`, then rewrite a version returning `Box<dyn Fn>` that picks `*` or `+` based on a `&str` argument.
-> 3. Use an enum tuple variant as a constructor function in a `.map(...)` call.
+> 3. Use an enum tuple variant as a constructor function in a `.map(...)` call. Then replace a `.map(|n| Some(n))` somewhere with `.map(Some)`.
+> 4. Write `make_counter() -> impl FnMut() -> u32`. Call it without `mut` first and read the error, then fix it. Create two counters and confirm their state is independent.
+> 5. Assign a non-capturing closure to a `fn(i32) -> i32` variable. Then add a capture to it and explain the new error.
+> 6. Write `let mut f = add_one; f = sub_one;` and read `error[E0308]` in full. Fix it two ways — with an annotation, and with `as`.
 
 The final advanced topic is talking to the outside world in other languages — **FFI**.
