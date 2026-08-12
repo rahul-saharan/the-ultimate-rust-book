@@ -49,20 +49,6 @@ book actually works.
 - **Self-contained.** All libraries (marked, Prism, Mermaid) are vendored locally — no CDN, so it
   works offline and won't break when a CDN changes.
 
-## Hosting it on GitHub Pages
-
-From inside this folder:
-
-```bash
-git init && git add -A && git commit -m "The Ultimate Rust Book"
-gh repo create my-rust-book --public --source=. --push
-```
-
-Then go to the repo's **Settings → Pages**, set the source to the `main` branch, `/ (root)`, and
-save. The book will be live at `https://<username>.github.io/my-rust-book/`.
-
-It also deploys as-is to Netlify, Vercel, Cloudflare Pages, or Amazon S3 — just upload the folder.
-
 ## Previewing locally
 
 The book loads its chapters with `fetch()`, which browsers block on the `file://` protocol, so open
