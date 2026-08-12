@@ -99,6 +99,80 @@ anyhow's toolkit:
 > ```
 > Adding context at each layer as an error bubbles up produces a breadcrumb trail that makes debugging production failures dramatically easier — for a one-line effort per `?`.
 
+### Printing an anyhow error properly
+
+The chain only appears if you print it the right way — and the difference catches people out:
+
+```rust
+use anyhow::{Context, Result};
+
+fn read_setting() -> Result<i32> {
+    "not-a-number"
+        .parse::<i32>()
+        .context("parsing the `retries` setting")
+        .context("loading application config")
+}
+
+fn main() {
+    let err = read_setting().unwrap_err();
+
+    println!("--- {{}}  (top layer only) ---");
+    println!("{err}");
+
+    println!("\n--- {{:#}}  (single line, all layers) ---");
+    println!("{err:#}");
+
+    println!("\n--- {{:?}}  (the report you want from main) ---");
+    println!("{err:?}");
+}
+```
+
+| Format | Produces |
+|---|---|
+| `{}` | just the outermost context — for a user-facing one-liner |
+| `{:#}` | every layer joined with `: ` — good for a log line |
+| `{:?}` | the full multi-line report with `Caused by:` — **and a backtrace if enabled** |
+
+> [!tip] Return `anyhow::Result` from `main` and let it do the printing
+> `fn main() -> anyhow::Result<()>` prints the `{:?}` report automatically and exits non-zero. That's the whole error-handling story for most CLIs:
+> ```rust,ignore
+> fn main() -> anyhow::Result<()> {
+>     let config = load_config().context("starting up")?;
+>     run(config)
+> }
+> ```
+> Set `RUST_BACKTRACE=1` and the report gains a backtrace captured at the point the error was *created* — far more useful than one from where it was printed. This needs no code changes; anyhow captures it when the env var is set.
+
+### Recovering a typed error from `anyhow`
+
+The usual objection to `anyhow` is "I've thrown away the type." You haven't — it's erased from the *signature*, not destroyed. `downcast_ref` gets it back when you need to branch on one specific case:
+
+```rust
+use anyhow::{Context, Result};
+use std::num::ParseIntError;
+
+fn parse(raw: &str) -> Result<i32> {
+    raw.parse::<i32>().context("parsing the input")
+}
+
+fn main() {
+    let err = parse("abc").unwrap_err();
+
+    // Ask: was the root cause a ParseIntError?
+    if let Some(pe) = err.downcast_ref::<ParseIntError>() {
+        println!("recovered the typed error: {pe}");
+    }
+
+    // Or walk the whole chain:
+    for (i, cause) in err.chain().enumerate() {
+        println!("  {i}: {cause}");
+    }
+}
+```
+
+> [!best] Use it as an escape hatch, not a design
+> If you find yourself downcasting in more than one or two places, that's the signal your *application* has grown a genuine domain-error type — promote those cases to a `thiserror` enum and keep `anyhow` for the truly unexpected. A common mature shape is both at once: `thiserror` enums in the library layers, `anyhow` at the top of `main`, and `?` converting between them automatically.
+
 ## The decision, cemented
 
 <figure class="diagram">

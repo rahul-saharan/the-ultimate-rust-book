@@ -122,6 +122,72 @@ fn main() {
 > [!jargon] What's a "range"?
 > A **range** is a lightweight way to express a sequence of numbers. `0..5` is the *half-open* range 0,1,2,3,4 (start included, end excluded) — perfect for indexing. `1..=5` is the *inclusive* range 1,2,3,4,5. Ranges are used constantly with `for`.
 
+Ranges are iterators, so they compose with the usual adapters:
+
+```rust
+fn main() {
+    print!("countdown: ");
+    for n in (1..=5).rev() { print!("{n} "); }          // 5 4 3 2 1
+
+    print!("\nevens:     ");
+    for n in (0..20).step_by(4) { print!("{n} "); }      // 0 4 8 12 16
+
+    print!("\nzipped:    ");
+    for (letter, number) in "abc".chars().zip(1..) {     // 1.. is unbounded
+        print!("{letter}{number} ");
+    }
+    println!();
+}
+```
+
+### The three ways to iterate — and the one that surprises people
+
+`for x in collection` **consumes** the collection. That's a deliberate choice, and it's the first ownership error most people meet:
+
+```rust,ignore
+let names = vec![String::from("ada"), String::from("grace")];
+
+for name in names {          // ← this MOVES `names` into the loop
+    println!("{name}");
+}
+
+println!("{names:?}");        // ❌ error[E0382]: borrow of moved value: `names`
+```
+
+Add an `&` and the loop borrows instead:
+
+```rust
+fn main() {
+    let names = vec![String::from("ada"), String::from("grace")];
+
+    for name in &names {              // borrow each item: name is &String
+        println!("hello, {name}");
+    }
+    println!("still here: {names:?}"); // ✅ names was only borrowed
+
+    let mut scores = vec![10, 20, 30];
+    for score in &mut scores {         // mutable borrow: score is &mut i32
+        *score += 5;                   // deref to modify the element
+    }
+    println!("bumped: {scores:?}");
+
+    // Consuming on purpose — useful when you want the owned items:
+    let owned: Vec<String> = names.into_iter().map(|n| n.to_uppercase()).collect();
+    println!("consumed into: {owned:?}");
+}
+```
+
+| You write | Each item is | The collection afterwards |
+|---|---|---|
+| `for x in &v` | `&T` — read only | still yours |
+| `for x in &mut v` | `&mut T` — modify in place | still yours, now changed |
+| `for x in v` | `T` — owned | **moved away, gone** |
+
+> [!key] `&v`, `&mut v`, and `v` are shorthand for three different iterators
+> Under the hood these call `v.iter()`, `v.iter_mut()`, and `v.into_iter()` respectively — `for` just picks the right one from the `&`. That's why the item type changes: `iter()` yields `&T`, `iter_mut()` yields `&mut T`, and `into_iter()` yields `T` by taking ownership of the collection.
+>
+> The rule of thumb: **start with `&v`**. Use `&mut v` when you're editing elements in place, and plain `v` only when you genuinely want to consume the collection and never use it again. If you hit `E0382: borrow of moved value` after a `for` loop, a missing `&` is almost always the cause.
+
 > [!best] Prefer `for` over manual indexing
 > You *could* write `while i < arr.len() { … arr[i] … i += 1; }`, but it's error-prone (off-by-one bugs, forgetting to increment) and every access does a bounds check. A `for item in &arr` loop is clearer, faster, and impossible to get wrong. When you also need the index, use `.enumerate()`:
 > ```rust

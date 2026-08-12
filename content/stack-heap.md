@@ -81,6 +81,117 @@ fn main() {
 
 Notice `Box<i32>` is only 8 bytes on the stack even though it owns an integer on the heap — because a `Box` is just a pointer. And `[i32; 100]` is a full 400 bytes on the stack, because arrays store all their data inline.
 
+<figure class="diagram">
+<svg viewBox="0 0 670 215" role="img" aria-label="A String variable is a three word handle on the stack holding a pointer, a length of 5 and a capacity of 8, pointing to the bytes h e l l o stored in the heap. Cloning duplicates the heap bytes; moving copies only the 24 byte handle.">
+  <style>
+    .sh-h { font: 700 11.5px var(--font-sans); }
+    .sh-m { font: 600 10.5px var(--font-mono); fill: var(--text); }
+    .sh-c { font: 10px var(--font-sans); fill: var(--text-mute); }
+    .sh-st { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 1.4; }
+    .sh-hp { fill: var(--rust-100); stroke: var(--rust-400); stroke-width: 1.4; }
+    .sh-free { fill: var(--surface-2); stroke: var(--border-strong); stroke-width: 1.1; stroke-dasharray: 3 2; }
+  </style>
+  <text x="14" y="16" class="sh-h" fill="var(--blue)">STACK — the handle (24 bytes, fixed)</text>
+  <text x="400" y="16" class="sh-h" fill="var(--rust-600)">HEAP — the text (grows)</text>
+  <rect x="14" y="26" width="200" height="26" class="sh-st"/><text x="24" y="44" class="sh-m">ptr  ●───────────────</text>
+  <rect x="14" y="54" width="200" height="26" class="sh-st"/><text x="24" y="72" class="sh-m">len  5</text>
+  <rect x="14" y="82" width="200" height="26" class="sh-st"/><text x="24" y="100" class="sh-m">cap  8</text>
+  <rect x="400" y="26" width="40" height="40" class="sh-hp"/><text x="412" y="51" class="sh-m">h</text>
+  <rect x="442" y="26" width="40" height="40" class="sh-hp"/><text x="454" y="51" class="sh-m">e</text>
+  <rect x="484" y="26" width="40" height="40" class="sh-hp"/><text x="496" y="51" class="sh-m">l</text>
+  <rect x="526" y="26" width="40" height="40" class="sh-hp"/><text x="538" y="51" class="sh-m">l</text>
+  <rect x="568" y="26" width="40" height="40" class="sh-hp"/><text x="580" y="51" class="sh-m">o</text>
+  <rect x="610" y="26" width="48" height="40" class="sh-free"/><text x="616" y="51" class="sh-c">spare</text>
+  <path d="M216 39 C 300 39, 340 44, 398 44" stroke="var(--blue)" stroke-width="1.8" fill="none" marker-end="url(#sha)"/>
+  <text x="400" y="84" class="sh-c">len = 5 bytes used · cap = 8 allocated</text>
+  <text x="400" y="100" class="sh-c">push beyond cap → reallocate &amp; copy</text>
+  <rect x="14" y="128" width="644" height="26" rx="4" class="sh-st"/>
+  <text x="24" y="146" class="sh-m">MOVE: copy the 24-byte handle only — the heap bytes never move. Cheap, O(1).</text>
+  <rect x="14" y="160" width="644" height="26" rx="4" class="sh-hp"/>
+  <text x="24" y="178" class="sh-m">CLONE: allocate new heap space and copy every byte. Expensive, O(n).</text>
+  <text x="14" y="204" class="sh-c">Vec&lt;T&gt; has the identical three-word shape. Box&lt;T&gt; is the same idea with just the pointer (8 bytes, no len/cap).</text>
+  <defs><marker id="sha" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="var(--blue)"/></marker></defs>
+</svg>
+<figcaption>A <code>String</code> is a fixed 24-byte handle on the stack pointing at variable-length bytes on the heap — which is why moving is cheap and cloning isn't.</figcaption>
+</figure>
+
+### Seeing both regions at once
+
+Addresses make the split concrete. Stack values sit close together; heap allocations live somewhere else entirely:
+
+```rust
+fn main() {
+    let on_stack: i32 = 42;
+    let array = [1u8, 2, 3];
+    let text = String::from("hello");
+    let boxed = Box::new(99);
+
+    println!("STACK addresses (close together, high):");
+    println!("  i32       {:p}", &on_stack);
+    println!("  [u8; 3]   {:p}", &array);
+    println!("  String handle {:p}", &text);
+
+    println!("\nHEAP addresses (elsewhere, and much lower):");
+    println!("  String's bytes {:p}", text.as_ptr());
+    println!("  Box's value    {:p}", &*boxed);
+
+    println!("\nThe handle is {} bytes; the text it points to is {} bytes.",
+             std::mem::size_of::<String>(), text.len());
+}
+```
+
+The stack addresses cluster within a few dozen bytes of each other — that's one function's frame. The heap addresses are in a completely different range, because they come from the allocator rather than the frame pointer.
+
+> [!warning] The stack is small and fixed — you can exhaust it
+> A thread's stack is typically **8 MB** for the main thread and **2 MB** for spawned ones, decided when the thread starts and never grown. Two things blow it:
+> ```rust,ignore
+> let big = [0u8; 20_000_000];   // 20 MB array → instant stack overflow
+>
+> fn recurse(n: u64) -> u64 { 1 + recurse(n + 1) }   // no base case → overflow
+> ```
+> Both abort the process with `thread 'main' has overflowed its stack` — **not** a catchable panic, because the guard page is hit below the runtime's ability to unwind cleanly. The fixes are to box large data (`Box::new([0u8; 20_000_000])` puts it on the heap, where the limit is your RAM), or to convert deep recursion into a loop with an explicit `Vec` as the stack. This is the failure mode behind the deep-recursion warnings in [Recursion & Backtracking](#/ch/dsa-recursion) and the degenerate-tree crash in [Binary Trees](#/ch/dsa-trees).
+
+### Watching the heap reallocate
+
+Growing a `Vec` isn't one allocation — it's a series of them. Each time the buffer fills, `Vec` asks for a **bigger** one, **copies every existing element across**, and frees the old. You can watch it happen (the printed address may or may not change — the allocator sometimes manages to extend the block in place, which saves the copy):
+
+```rust
+fn main() {
+    let mut v: Vec<u64> = Vec::new();
+    let mut last_cap = v.capacity();
+    let mut reallocations = 0;
+    let mut elements_copied = 0usize;
+
+    println!("{:>7} {:>9} {:>16}", "len", "capacity", "heap address");
+    for i in 0..1_000u64 {
+        v.push(i);
+        if v.capacity() != last_cap {
+            reallocations += 1;
+            elements_copied += last_cap; // everything already there had to move
+            println!("{:>7} {:>9} {:>16p}  ← reallocated", v.len(), v.capacity(), v.as_ptr());
+            last_cap = v.capacity();
+        }
+    }
+
+    println!("\n1,000 pushes caused {reallocations} reallocations");
+    println!("and copied {elements_copied} elements that were already in place.");
+
+    // Pre-sizing eliminates all of it:
+    let mut sized: Vec<u64> = Vec::with_capacity(1_000);
+    let start_ptr = sized.as_ptr();
+    for i in 0..1_000u64 { sized.push(i); }
+    println!("\nwith_capacity(1000): 0 reallocations, address unchanged: {}",
+             std::ptr::eq(start_ptr, sized.as_ptr()));
+}
+```
+
+Reaching 1,000 elements takes about **ten** reallocations (capacity roughly doubles: 4, 8, 16, … 1024) and copies close to 1,000 elements that were already sitting in place. `Vec::with_capacity(n)` does it in one allocation with zero copying.
+
+> [!performance] Reserve when you know the size — but measure before micro-tuning
+> The counting above is exact and reproducible. *Timing* it is another matter: in a debug build the per-push bounds checks dominate, and the two versions can even swap places run to run. Compile with `--release` and pre-sizing wins consistently but modestly for simple element types, because `Vec`'s doubling strategy already makes growth **amortised O(1)**.
+>
+> Where it genuinely matters is when elements are expensive to move (large structs), when you're in a hot loop, or when the copying churns your cache. The habit is still free to adopt — `Vec::with_capacity(n)` costs nothing when you know `n` — just don't expect it to transform a program that wasn't allocation-bound. That's the general lesson: reach for a profiler ([Optimization](#/ch/optimization)) before rewriting on a hunch.
+
 ## Sized and unsized types
 
 The compiler needs to know how big each stack value is. Types whose size is known at compile time implement a special marker trait called **`Sized`** (automatically — you never write it). Almost everything is `Sized`.
@@ -114,5 +225,10 @@ Understanding stack vs. heap lets you write fast Rust on purpose, not by acciden
 > 1. Run the `size_of` example. Why is `&str` bigger than `Box<i32>`? (Hint: fat pointer.)
 > 2. Predict `size_of::<[u8; 10]>()` and `size_of::<Vec<u8>>()` before running. Explain the difference.
 > 3. Explain in one sentence why moving a `String` is cheap but cloning it is not, using the words *stack*, *heap*, and *handle*.
+> 4. Run the address example. How far apart are the stack addresses, and how far is the heap from them?
+> 5. Print a `String`'s `.len()` and `.capacity()`, then push characters in a loop printing both each time. Watch capacity double.
+> 6. Trigger a stack overflow with `let big = [0u8; 20_000_000];`, then fix it with `Box::new(...)` and confirm it runs.
+> 7. Run the allocation benchmark. Roughly how many times does a `Vec` reallocate on its way to 200,000 elements, given it doubles each time?
+> 8. Take the `text.as_ptr()` value before and after pushing enough characters to force a reallocation. Did the heap address change? What does that imply about holding a raw pointer into a `Vec`?
 
 That completes the Ownership part — the conceptual heart of Rust. Now we'll use these ideas to build our own custom types, starting with **structs**.

@@ -159,6 +159,126 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+## Errors are `Status`, not `Result<_, MyError>`
+
+Every gRPC method returns `Result<Response<T>, Status>`. A **`Status`** is a machine-readable code plus a message — gRPC's equivalent of an HTTP status, and part of the contract both sides share:
+
+```rust,ignore
+use tonic::{Code, Request, Response, Status};
+
+async fn get_user(&self, request: Request<GetUserRequest>) -> Result<Response<User>, Status> {
+    let id = request.into_inner().id;
+
+    if id == 0 {
+        // The client sent something invalid — their fault, don't retry.
+        return Err(Status::invalid_argument("id must be greater than zero"));
+    }
+
+    let user = self.db.find(id).await
+        .map_err(|e| {
+            // Log the real cause server-side; send the client something safe.
+            tracing::error!(error = %e, "database lookup failed");
+            Status::internal("could not load user")
+        })?;
+
+    user.map(|u| Response::new(u))
+        .ok_or_else(|| Status::not_found(format!("no user with id {id}")))
+}
+```
+
+The codes you'll use most, and what each tells the caller:
+
+| `Status` constructor | Code | Means | Client should |
+|---|---|---|---|
+| `invalid_argument` | 3 | the request itself is malformed | fix it; **don't** retry |
+| `not_found` | 5 | no such entity | handle the absence |
+| `already_exists` | 6 | duplicate create | treat as conflict |
+| `permission_denied` | 7 | authenticated but not allowed | stop |
+| `unauthenticated` | 16 | no or bad credentials | re-authenticate |
+| `resource_exhausted` | 8 | rate-limited or out of quota | back off and retry |
+| `failed_precondition` | 9 | state is wrong for this call | fix state, then retry |
+| `unavailable` | 14 | transient — server down, restarting | **retry with backoff** |
+| `deadline_exceeded` | 4 | ran out of time | retry if idempotent |
+| `internal` | 13 | a bug on the server | report; don't retry blindly |
+
+> [!best] Codes are an API contract — choose them deliberately
+> The difference between `unavailable` and `internal` isn't cosmetic: generic gRPC clients, service meshes, and retry middleware **act** on the code. Returning `internal` for a transient blip means nobody retries; returning `unavailable` for a genuine bug means everybody hammers you while it stays broken.
+>
+> Two habits follow. **Map your domain errors in one place** — a `From<AppError> for Status` impl, exactly the pattern from [Custom Errors](#/ch/custom-errors) — so the mapping is consistent and reviewable. And **never leak internals in the message**: `Status::internal(e.to_string())` can put a database DSN or a file path in front of a client. Log the detail with [tracing](#/ch/tracing), return something bland.
+
+## Metadata, auth, and interceptors
+
+**Metadata** is gRPC's key-value header map — where auth tokens, request IDs, and tracing context travel:
+
+```rust,ignore
+// ── client: attach a token to one request ──
+let mut request = Request::new(GetUserRequest { id: 42 });
+request.metadata_mut().insert(
+    "authorization",
+    format!("Bearer {token}").parse().unwrap(),
+);
+let response = client.get_user(request).await?;
+
+// ── server: read it back ──
+async fn get_user(&self, request: Request<GetUserRequest>) -> Result<Response<User>, Status> {
+    let token = request.metadata()
+        .get("authorization")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.strip_prefix("Bearer "))
+        .ok_or_else(|| Status::unauthenticated("missing bearer token"))?;
+    // …validate the token…
+    # todo!()
+}
+```
+
+An **interceptor** applies that logic to *every* call instead of each handler — tonic's equivalent of the middleware layer in [axum](#/ch/axum):
+
+```rust,ignore
+fn require_auth(mut req: Request<()>) -> Result<Request<()>, Status> {
+    match req.metadata().get("authorization") {
+        Some(t) if t.to_str().map(|s| s.starts_with("Bearer ")).unwrap_or(false) => Ok(req),
+        _ => Err(Status::unauthenticated("missing or malformed token")),
+    }
+}
+
+Server::builder()
+    .add_service(UserServiceServer::with_interceptor(svc, require_auth))
+    .serve(addr)
+    .await?;
+```
+
+Because tonic is built on [tower](#/ch/axum), the whole `tower-http` layer ecosystem works here too — `TraceLayer`, `TimeoutLayer`, and compression apply to a gRPC server exactly as they do to an HTTP one.
+
+## Deadlines, TLS, and debugging
+
+Three practical concerns that separate a demo from a service:
+
+```rust,ignore
+// ── Deadlines: gRPC propagates them across service hops ──
+let mut request = Request::new(GetUserRequest { id: 42 });
+request.set_timeout(Duration::from_secs(2));
+// If it expires, the server sees the cancellation and the client gets
+// Status(code: DeadlineExceeded). Unlike a client-side timeout, the SERVER
+// learns about it and can stop doing pointless work.
+
+// ── TLS ──
+// Cargo.toml: tonic = { version = "0.12", features = ["tls"] }
+let tls = ClientTlsConfig::new().ca_certificate(Certificate::from_pem(pem));
+let channel = Channel::from_static("https://api.example.com")
+    .tls_config(tls)?
+    .connect()
+    .await?;
+```
+
+> [!tip] You can't `curl` a gRPC service — use `grpcurl`
+> Binary protobuf over HTTP/2 isn't inspectable with the usual tools, which makes gRPC feel opaque at first. **`grpcurl`** is the fix — `curl` for gRPC:
+> ```bash
+> grpcurl -plaintext localhost:50051 list                    # what services exist?
+> grpcurl -plaintext localhost:50051 describe .UserService   # what methods?
+> grpcurl -plaintext -d '{"id": 42}' localhost:50051 UserService/GetUser
+> ```
+> The `list`/`describe` commands need **server reflection**, which you enable with the `tonic-reflection` crate — well worth adding in development, and usually disabled in production since it advertises your whole API surface. Without it you must pass the `.proto` file with `-proto`.
+
 ## Streaming
 
 A big advantage of gRPC over plain REST is **streaming** — thanks to HTTP/2, a single call can send

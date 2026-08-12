@@ -82,6 +82,40 @@ That's it — your crate is now installable by anyone with `cargo add my_crate`.
 > `"1.2"` will accept any `1.x` but never `2.0`. Following SemVer honestly is your contract with the
 > people who depend on you.
 
+### What actually counts as a breaking change
+
+The surprising part of SemVer in Rust is how many "small" edits break downstream builds. These all require a **MAJOR** bump:
+
+| Change | Why it breaks |
+|---|---|
+| Adding a field to a public struct | callers using literal syntax (`Config { a, b }`) no longer compile |
+| Adding a variant to a public enum | exhaustive `match`es lose their exhaustiveness |
+| Adding a required method to a trait | every outside implementor breaks |
+| Renaming *anything* public | obvious, but easy to do by accident during a refactor |
+| Narrowing a parameter type (`&str` → `String`) | existing call sites stop compiling |
+| Adding a trait bound to an existing generic | callers with types lacking the bound break |
+
+Two attributes buy back most of that freedom, and cost nothing to add **before** 1.0:
+
+```rust,ignore
+#[non_exhaustive]                 // callers must include a `_` arm / can't use literal syntax,
+pub enum Error { NotFound, Io }   // so you can add variants later without a major bump
+
+#[non_exhaustive]
+pub struct Config { pub host: String }   // …and add fields later
+```
+
+> [!best] Let a tool check SemVer for you
+> Judging this by eye is unreliable — the field-addition case in particular catches experienced people. **`cargo-semver-checks`** compares your working copy against the published version and reports violations:
+> ```bash
+> cargo install cargo-semver-checks
+> cargo semver-checks check-release
+> ```
+> Run it in CI before every release. Pair it with a **pre-publish checklist**: `cargo publish --dry-run`, `cargo package --list` (see exactly which files ship — catches stray `.env` files and 200 MB of test fixtures), `cargo test --all-features`, and confirm the README renders. Also set `rust-version` in `Cargo.toml` to declare your MSRV, since raising it is itself a breaking change for some users.
+
+> [!tip] docs.rs builds your documentation automatically
+> Every published crate gets rendered docs at `docs.rs/<crate>` within minutes — you don't upload anything. Two consequences worth planning for: your **doc comments are your public documentation**, so write them as you go ([Comments & Documentation](#/ch/comments)); and doc examples are compiled and run by `cargo test`, so they can't rot. If your crate needs special build settings for docs (feature flags, a specific target), configure them under `[package.metadata.docs.rs]` in `Cargo.toml`.
+
 ## Feature flags: optional, opt-in functionality
 
 A **feature flag** lets your crate include some code or dependency *only if the user asks for it*.

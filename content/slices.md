@@ -141,6 +141,77 @@ fn sum(slice: &[i32]) -> i32 {
 > [!best] Accept `&[T]` for the same reason you accept `&str`
 > A function that takes `&[i32]` works with arrays *and* vectors *and* sub-slices. Prefer `&[T]` parameters over `&Vec<T>` — it's more general and just as fast.
 
+### Range shorthands, and slicing without panicking
+
+The two indices are both optional, and there's a non-panicking alternative worth knowing:
+
+```rust
+fn main() {
+    let v = [10, 20, 30, 40, 50];
+
+    println!("{:?}", &v[..]);    // the whole thing
+    println!("{:?}", &v[2..]);   // from index 2 to the end
+    println!("{:?}", &v[..3]);   // from the start up to (not including) 3
+    println!("{:?}", &v[1..=3]); // inclusive on the right
+
+    // Indexing out of range PANICS:
+    //   let boom = &v[2..99];   // 'range end index 99 out of range'
+
+    // `.get()` returns an Option instead — no panic:
+    println!("{:?}", v.get(2..4));   // Some([30, 40])
+    println!("{:?}", v.get(2..99));  // None
+    println!("{:?}", v.get(0));      // Some(10)  — single element
+    println!("{:?}", v.first());     // Some(10)
+    println!("{:?}", v.last());      // Some(50)
+}
+```
+
+> [!warning] String slices must land on character boundaries
+> Byte ranges into a `&str` are checked at **runtime**, and slicing through the middle of a multi-byte character panics:
+> ```rust,ignore
+> let s = "héllo";
+> let bad = &s[0..2];   // 💥 byte index 2 is not a char boundary
+> // panicked at 'byte index 2 is not a char boundary; it is inside 'é'
+> ```
+> `é` occupies bytes 1–2, so cutting at 2 would produce invalid UTF-8. This is the trap behind "why can't I just index a string?" — and why you reach for `.chars()`, `.char_indices()`, or `s.get(0..2)` (which returns `None` instead of panicking) when the content isn't plain ASCII. [Strings & Text](#/ch/strings) covers it properly.
+
+### Mutable slices
+
+`&mut [T]` lets a function change elements in place without owning the collection — and the standard library provides tools that hand out *several* non-overlapping mutable slices safely:
+
+```rust
+fn double_all(values: &mut [i32]) {
+    for v in values.iter_mut() {
+        *v *= 2;
+    }
+}
+
+fn main() {
+    let mut data = [1, 2, 3, 4, 5, 6];
+
+    double_all(&mut data);
+    println!("doubled:  {data:?}");
+
+    // Only part of it:
+    double_all(&mut data[..2]);
+    println!("first two: {data:?}");
+
+    // split_at_mut gives two disjoint &mut slices from one — safe because
+    // the compiler knows the halves can't overlap.
+    let (left, right) = data.split_at_mut(3);
+    left.sort();
+    right.reverse();
+    println!("halves:   {left:?} {right:?}");
+
+    // Handy read-only views over a slice:
+    let nums = [1, 2, 3, 4, 5];
+    println!("chunks:   {:?}", nums.chunks(2).collect::<Vec<_>>());
+    println!("windows:  {:?}", nums.windows(2).collect::<Vec<_>>());
+}
+```
+
+Note the difference in the last two: **`chunks`** cuts the slice into non-overlapping pieces, while **`windows`** slides a fixed-width view along it — the natural tool for "compare each element with the next."
+
 ## The safety payoff
 
 Here's the bug that slices make impossible. Because a slice borrows the string, you can't clear the string while a slice into it is alive:

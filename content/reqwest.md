@@ -145,8 +145,67 @@ async fn main() -> Result<(), reqwest::Error> {
 }
 ```
 
+### Three kinds of failure, and why the distinction matters
+
+"The request failed" hides three genuinely different situations, and they call for different responses:
+
+| What happened | How you detect it | Should you retry? |
+|---|---|---|
+| **Transport failure** — DNS, connection refused, TLS, timeout | the `Result` from `.send()` is `Err` | **yes**, with backoff — nothing reached the server |
+| **HTTP error status** — 4xx / 5xx | `Ok(resp)`, but `resp.status()` isn't 2xx | 5xx and 429: yes. 4xx: no, the request itself is wrong |
+| **Body/decode failure** — malformed JSON, wrong shape | `.json::<T>()` returns `Err` | no — retrying won't change the payload |
+
+```rust,ignore
+use std::time::Duration;
+
+async fn fetch(client: &reqwest::Client, url: &str) -> anyhow::Result<User> {
+    let resp = client
+        .get(url)
+        .timeout(Duration::from_secs(5))       // per-request, overrides the client default
+        .send()
+        .await
+        .context("connecting to the user service")?;   // ← transport failure
+
+    // Inspect the status BEFORE consuming the body, so you can branch on it:
+    match resp.status() {
+        s if s.is_success() => {}
+        reqwest::StatusCode::NOT_FOUND => anyhow::bail!("no such user"),
+        reqwest::StatusCode::TOO_MANY_REQUESTS => anyhow::bail!("rate limited; back off"),
+        s if s.is_server_error() => anyhow::bail!("server error {s}; retryable"),
+        s => anyhow::bail!("unexpected status {s}"),
+    }
+
+    let user = resp.json::<User>().await
+        .context("response body wasn't the User shape we expected")?;  // ← decode failure
+    Ok(user)
+}
+```
+
+> [!mistake] `error_for_status()` discards the response body — usually the part you need
+> `resp.error_for_status()?` is a tidy one-liner, and it throws away exactly what you want when debugging: most APIs put a JSON error object in the body of a 4xx. Once you've converted the response into an `Err`, that body is gone.
+>
+> When the body matters, read the status first and pull the text out yourself:
+> ```rust,ignore
+> if !resp.status().is_success() {
+>     let status = resp.status();
+>     let body = resp.text().await.unwrap_or_default();   // capture it BEFORE discarding
+>     anyhow::bail!("request failed: {status} — {body}");
+> }
+> ```
+> Use `error_for_status()` when you genuinely only care that it failed; use the explicit form the moment you need to know *why*.
+
 > [!best] Don't forget timeouts and error handling
 > Network calls fail and hang. In real code: set a **timeout** on the client (`Client::builder().timeout(Duration::from_secs(10)).build()?`) so a slow server can't hang your program forever; call **`error_for_status()`** to treat 4xx/5xx as errors; and wrap it all with [anyhow's `.context()`](#/ch/anyhow-thiserror) so failures are debuggable. A GET with no timeout and unchecked status is a common source of production hangs and silent failures.
+
+> [!warning] A timeout is not optional, and the default is "wait forever"
+> `reqwest` sets **no timeout by default**. A single unresponsive server will hang that task indefinitely — and in a connection pool, hung tasks accumulate until the service stops accepting work. Set one at the client level so every request inherits it, and override per-request where a particular call is legitimately slow:
+> ```rust,ignore
+> let client = reqwest::Client::builder()
+>     .timeout(Duration::from_secs(10))          // total time for the whole request
+>     .connect_timeout(Duration::from_secs(3))   // just the TCP+TLS handshake
+>     .build()?;
+> ```
+> The two are different: `connect_timeout` catches an unreachable host quickly, while `timeout` bounds the entire exchange including a slow body. For retries with exponential backoff, don't hand-roll it — `reqwest-retry` or `backon` compose with the client directly.
 
 ## Summary
 

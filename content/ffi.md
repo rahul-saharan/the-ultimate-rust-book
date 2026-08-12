@@ -118,6 +118,114 @@ fn main() {
 <figcaption>FFI bridges Rust and C in both directions over the shared <b>C ABI</b>.</figcaption>
 </figure>
 
+### Strings across the boundary
+
+This is the most common FFI task and the easiest to get wrong. Rust strings are UTF-8 with a known length and **no terminator**; C strings are a pointer to bytes ending in `\0`. Neither can be reinterpreted as the other:
+
+```rust
+use std::ffi::{CStr, CString};
+use std::os::raw::c_char;
+
+/// Stands in for a C function taking a `const char*` and returning its length.
+fn c_side_strlen(ptr: *const c_char) -> usize {
+    unsafe { CStr::from_ptr(ptr).to_bytes().len() }
+}
+
+fn main() {
+    // ── Rust → C: CString adds the NUL and guarantees no interior NULs ──
+    let owned = CString::new("hello from Rust").expect("no interior NUL bytes");
+    let ptr: *const c_char = owned.as_ptr();
+    println!("C saw {} bytes", c_side_strlen(ptr));
+
+    // `owned` must outlive every use of `ptr` — see the mistake callout below.
+    drop(owned);
+
+    // ── C → Rust: wrap the pointer, then validate it as UTF-8 ──
+    let from_c = CString::new("data from C").unwrap(); // pretend C gave us this
+    let borrowed: &CStr = unsafe { CStr::from_ptr(from_c.as_ptr()) };
+    match borrowed.to_str() {
+        Ok(s) => println!("as &str: {s}"),
+        Err(e) => println!("not valid UTF-8: {e}"),   // C strings carry no encoding promise
+    }
+    // Lossy conversion when you'd rather not fail:
+    println!("lossy: {}", borrowed.to_string_lossy());
+
+    // A NUL in the middle is rejected up front, not silently truncated:
+    println!("{:?}", CString::new("bad\0string").is_err());
+}
+```
+
+> [!mistake] `CString::new(s).unwrap().as_ptr()` is a dangling pointer
+> The single most common FFI bug in Rust, and it compiles cleanly:
+> ```rust,ignore
+> let ptr = CString::new("hello").unwrap().as_ptr();  // ❌
+> c_function(ptr); // the CString was dropped at the end of the previous statement
+> ```
+> The temporary `CString` is dropped at the semicolon, freeing the buffer `ptr` points into. Bind it to a variable first so it lives long enough:
+> ```rust,ignore
+> let owned = CString::new("hello").unwrap();  // ✅ lives until end of scope
+> c_function(owned.as_ptr());
+> ```
+> Rust will not warn you here — the pointer is just a number, and its provenance is invisible to the borrow checker. Miri catches it; the compiler does not.
+
+### Handing a Rust object to C and getting it back
+
+When C needs to hold a Rust value between calls, you pass an **opaque pointer**: `Box::into_raw` gives up ownership, and `Box::from_raw` reclaims it. This is the "handle" pattern behind most C APIs wrapping a Rust library:
+
+```rust
+pub struct Counter { count: u64 }
+
+/// C calls this to create one. Rust stops managing the memory.
+#[no_mangle]
+pub extern "C" fn counter_new() -> *mut Counter {
+    Box::into_raw(Box::new(Counter { count: 0 }))
+}
+
+/// SAFETY: `ptr` must come from `counter_new` and not have been freed.
+#[no_mangle]
+pub unsafe extern "C" fn counter_increment(ptr: *mut Counter) -> u64 {
+    let counter = unsafe { &mut *ptr };   // borrow, do NOT take ownership
+    counter.count += 1;
+    counter.count
+}
+
+/// C MUST call this, or the allocation leaks. Rust can't free it automatically.
+#[no_mangle]
+pub unsafe extern "C" fn counter_free(ptr: *mut Counter) {
+    if ptr.is_null() { return; }
+    drop(unsafe { Box::from_raw(ptr) });  // ownership returns to Rust, then drops
+}
+
+fn main() {
+    // Simulate the C side of the conversation:
+    let handle = counter_new();
+    unsafe {
+        println!("{}", counter_increment(handle));
+        println!("{}", counter_increment(handle));
+        counter_free(handle);
+    }
+}
+```
+
+> [!key] Every FFI boundary needs an ownership contract, written down
+> The three rules that make the pattern above sound, and that your header docs must state:
+> 1. **Who allocates, and who frees.** Memory allocated by Rust must be freed by Rust (`counter_free`), never by C's `free()` — the allocators differ. The same in reverse.
+> 2. **Borrow, don't reclaim, on ordinary calls.** `counter_increment` uses `&mut *ptr`. Writing `Box::from_raw` there would free the counter at the end of the call, and the next use would be a use-after-free.
+> 3. **Null is always possible.** C will eventually pass you one; check before dereferencing, as `counter_free` does.
+
+> [!warning] Never let a panic unwind into C
+> If a Rust function called from C panics and unwinds across the boundary, the behaviour is **undefined** — C has no notion of unwinding. Wrap the body of any `extern "C"` function that might panic:
+> ```rust,ignore
+> #[no_mangle]
+> pub extern "C" fn risky_operation(input: i32) -> i32 {
+>     std::panic::catch_unwind(|| {
+>         do_work(input)          // may panic
+>     })
+>     .unwrap_or(-1)              // turn a panic into an error code C understands
+> }
+> ```
+> The alternatives are setting `panic = "abort"` in your profile (the whole process dies, which is at least defined), or declaring the function `extern "C-unwind"` when the other side genuinely does understand unwinding. Note that `catch_unwind` requires the closure to be `UnwindSafe`, and it cannot catch an abort.
+
 > [!warning] FFI is a safety boundary — you're responsible past it
 > The moment you cross into C, Rust's guarantees stop. The C side can dangle pointers, corrupt memory, or ignore your invariants, and the compiler can't help. Treat every FFI call as `unsafe` for real reasons: validate pointers, respect ownership of allocations (who frees what?), never let a Rust panic unwind across the boundary into C (mark handlers `catch_unwind` or use `extern "C-unwind"` deliberately). The idiomatic approach is to **wrap the raw FFI in a safe Rust API** — exactly the pattern from the [unsafe chapter](#/ch/unsafe).
 

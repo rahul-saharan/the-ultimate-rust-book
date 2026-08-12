@@ -52,7 +52,7 @@
           "file": "variables.md",
           "level": "beginner",
           "time": "10 min",
-          "summary": "let, mut, constants, shadowing — how Rust stores values.",
+          "summary": "let, mut, constants, shadowing \u2014 how Rust stores values.",
           "keywords": "let mut const shadowing immutable variables binding"
         },
         {
@@ -79,7 +79,7 @@
           "file": "comments.md",
           "level": "beginner",
           "time": "12 min",
-          "summary": "Line, block, and doc comments — plus cargo doc.",
+          "summary": "Line, block, and doc comments \u2014 plus cargo doc.",
           "keywords": "comments doc comments /// //! rustdoc cargo doc documentation"
         },
         {
@@ -94,7 +94,7 @@
       ]
     },
     {
-      "title": "Ownership — The Heart of Rust",
+      "title": "Ownership \u2014 The Heart of Rust",
       "chapters": [
         {
           "id": "ownership",
@@ -152,7 +152,7 @@
           "file": "enums.md",
           "level": "beginner",
           "time": "20 min",
-          "summary": "Types that are one of several variants — Rust's superpower: data-carrying variants, memory layout, making illegal states impossible, state machines, recursive & generic enums, Option and Result.",
+          "summary": "Types that are one of several variants \u2014 Rust's superpower: data-carrying variants, memory layout, making illegal states impossible, state machines, recursive & generic enums, Option and Result.",
           "keywords": "enum variants Option Result data-carrying enums algebraic sum type tag discriminant memory layout niche illegal states state machine recursive Box generic Either match if let let else discriminant C-like HttpStatus"
         },
         {
@@ -243,7 +243,7 @@
           "file": "other-collections.md",
           "level": "intermediate",
           "time": "24 min",
-          "summary": "The rest of std::collections — VecDeque, BTreeMap/Set, HashSet, BinaryHeap — with full method tables and when to reach for each.",
+          "summary": "The rest of std::collections \u2014 VecDeque, BTreeMap/Set, HashSet, BinaryHeap \u2014 with full method tables and when to reach for each.",
           "keywords": "VecDeque BTreeMap BTreeSet HashSet BinaryHeap LinkedList collections"
         },
         {
@@ -316,7 +316,7 @@
           "file": "traits.md",
           "level": "intermediate",
           "time": "18 min",
-          "summary": "Rust's answer to interfaces — shared behavior across types.",
+          "summary": "Rust's answer to interfaces \u2014 shared behavior across types.",
           "keywords": "trait impl default methods bounds blanket impl orphan rule derive"
         },
         {
@@ -439,7 +439,7 @@
           "file": "box.md",
           "level": "intermediate",
           "time": "24 min",
-          "summary": "The simplest smart pointer — own data on the heap.",
+          "summary": "The simplest smart pointer \u2014 own data on the heap.",
           "keywords": "Box heap recursive types dyn trait indirection sized"
         },
         {
@@ -457,7 +457,7 @@
           "file": "refcell.md",
           "level": "advanced",
           "time": "20 min",
-          "summary": "Mutate data through a shared reference — safely, at runtime.",
+          "summary": "Mutate data through a shared reference \u2014 safely, at runtime.",
           "keywords": "RefCell Cell interior mutability borrow_mut runtime borrow check panic"
         },
         {
@@ -507,7 +507,7 @@
           "file": "conversions.md",
           "level": "intermediate",
           "time": "20 min",
-          "summary": "The conversion trait family — which one to implement, which one to accept, and what each costs.",
+          "summary": "The conversion trait family \u2014 which one to implement, which one to accept, and what each costs.",
           "keywords": "from into tryfrom tryinto fromstr parse asref borrow toowned cow clone-on-write as to into naming convention orphan"
         },
         {
@@ -516,7 +516,7 @@
           "file": "idioms-patterns.md",
           "level": "intermediate",
           "time": "22 min",
-          "summary": "Newtype, builder, typestate, RAII guards, extension traits and strategy — the patterns Rust programmers actually use.",
+          "summary": "Newtype, builder, typestate, RAII guards, extension traits and strategy \u2014 the patterns Rust programmers actually use.",
           "keywords": "newtype builder typestate phantomdata raii guard drop extension trait ext strategy static dynamic dispatch parse dont validate orphan rule"
         },
         {
@@ -525,7 +525,7 @@
           "file": "api-design.md",
           "level": "advanced",
           "time": "24 min",
-          "summary": "Naming, signatures, derives, future-proofing and semver — the conventions that make a library feel Rusty.",
+          "summary": "Naming, signatures, derives, future-proofing and semver \u2014 the conventions that make a library feel Rusty.",
           "keywords": "api guidelines naming as to into get must_use non_exhaustive sealed trait derive semver breaking change docs missing_docs doctest illegal states"
         },
         {
@@ -534,7 +534,7 @@
           "file": "anti-patterns.md",
           "level": "intermediate",
           "time": "22 min",
-          "summary": "The eight habits that make Rust painful — unwrap everywhere, reflex cloning, Rc<RefCell> soup — and the fix for each.",
+          "summary": "The eight habits that make Rust painful \u2014 unwrap everywhere, reflex cloning, Rc<RefCell> soup \u2014 and the fix for each.",
           "keywords": "antipattern unwrap expect clone rc refcell arena stringly typed result string premature generics deref abuse match arms modules pub crate"
         },
         {
@@ -593,7 +593,7 @@
           "file": "atomics.md",
           "level": "advanced",
           "time": "22 min",
-          "summary": "How atomics work and why: the lost-update problem, atomic types, CAS loops, building a spinlock from an AtomicBool, memory ordering (Relaxed/Acquire/Release/SeqCst), real project uses (shutdown flags, counters, unique IDs), and pitfalls — with visuals.",
+          "summary": "How atomics work and why: the lost-update problem, atomic types, CAS loops, building a spinlock from an AtomicBool, memory ordering (Relaxed/Acquire/Release/SeqCst), real project uses (shutdown flags, counters, unique IDs), and pitfalls \u2014 with visuals.",
           "keywords": "atomic AtomicBool AtomicUsize AtomicU64 AtomicPtr Ordering Relaxed Acquire Release SeqCst compare_exchange compare_exchange_weak fetch_add fetch_update swap CAS compare and swap lock-free spinlock build lock from atomic memory ordering false sharing ABA problem shutdown flag counter metrics unique id OnceLock interior mutability publish subscribe"
         },
         {
@@ -661,7 +661,7 @@
           "file": "async-ecosystem.md",
           "level": "intermediate",
           "time": "12 min",
-          "summary": "tokio vs async-std vs smol — trade-offs and interop.",
+          "summary": "tokio vs async-std vs smol \u2014 trade-offs and interop.",
           "keywords": "async-std smol tokio runtime comparison compatibility ecosystem"
         }
       ]
@@ -711,7 +711,7 @@
           "file": "type-system.md",
           "level": "intermediate",
           "time": "45 min",
-          "summary": "The complete catalog of every Rust type explained one by one — bool, char, integers, floats, str, String, tuples, arrays, slices, references, Box, Rc/Arc, structs, enums, Option, Result, Vec, HashMap, closures, generics, dyn Trait and more — each with theory, a diagram, an example, and its usefulness.",
+          "summary": "The complete catalog of every Rust type explained one by one \u2014 bool, char, integers, floats, str, String, tuples, arrays, slices, references, Box, Rc/Arc, structs, enums, Option, Result, Vec, HashMap, closures, generics, dyn Trait and more \u2014 each with theory, a diagram, an example, and its usefulness.",
           "keywords": "type system every type all types catalog reference bool char integer float i32 u8 usize f64 str String tuple array slice reference borrow raw pointer Box Rc Arc Cell RefCell Cow struct enum union Option Result Vec VecDeque HashMap BTreeMap HashSet range closure fn Fn FnMut FnOnce generic const generic dyn impl trait sized unsized DST fat pointer cardinality zero-sized ZST never type ! vtable dispatch monomorphization marker Copy Send Sync product sum algebraic diagram"
         },
         {
@@ -756,7 +756,7 @@
           "file": "modern-syntax.md",
           "level": "intermediate",
           "time": "20 min",
-          "summary": "The recent features that quietly improve everyday code — let-else, let-chains, matches!, labeled blocks, RPITIT and async fn in traits.",
+          "summary": "The recent features that quietly improve everyday code \u2014 let-else, let-chains, matches!, labeled blocks, RPITIT and async fn in traits.",
           "keywords": "let else let chains matches macro labeled block break value rpitit impl trait return position trait async fn in trait afit gat inline format args is_some_and is_none_or inspect inline const msrv stabilization version"
         }
       ]
@@ -793,7 +793,7 @@
         },
         {
           "id": "std-io",
-          "title": "std::io — Reading & Writing",
+          "title": "std::io \u2014 Reading & Writing",
           "file": "std-io.md",
           "level": "intermediate",
           "time": "24 min",
@@ -802,7 +802,7 @@
         },
         {
           "id": "std-fs",
-          "title": "std::fs — Files & Paths",
+          "title": "std::fs \u2014 Files & Paths",
           "file": "std-fs.md",
           "level": "intermediate",
           "time": "22 min",
@@ -815,7 +815,7 @@
           "file": "io-streams.md",
           "level": "intermediate",
           "time": "30 min",
-          "summary": "The deep, unified tour of Rust I/O: the Read/Write/BufRead/Seek stream model, buffering, stdin/stdout/stderr and locking, the filesystem, paths, error handling, io::copy pipelines, and the bridge to async — with diagrams and runnable examples.",
+          "summary": "The deep, unified tour of Rust I/O: the Read/Write/BufRead/Seek stream model, buffering, stdin/stdout/stderr and locking, the filesystem, paths, error handling, io::copy pipelines, and the bridge to async \u2014 with diagrams and runnable examples.",
           "keywords": "io stream Read Write BufRead Seek Cursor buffering BufReader BufWriter stdin stdout stderr lock flush is_terminal println eprintln io::copy empty sink repeat ErrorKind Interrupted file OpenOptions append create_new metadata permissions path PathBuf join read_dir seek SeekFrom filesystem bytes lines async tokio streams"
         },
         {
@@ -856,7 +856,7 @@
         },
         {
           "id": "std-net",
-          "title": "std::net — TCP & UDP",
+          "title": "std::net \u2014 TCP & UDP",
           "file": "std-net.md",
           "level": "advanced",
           "time": "24 min",
@@ -865,7 +865,7 @@
         },
         {
           "id": "std-sync",
-          "title": "std::sync — Synchronization Primitives",
+          "title": "std::sync \u2014 Synchronization Primitives",
           "file": "std-sync.md",
           "level": "advanced",
           "time": "30 min",
@@ -901,7 +901,7 @@
           "file": "serde.md",
           "level": "intermediate",
           "time": "26 min",
-          "summary": "The complete serde & serde_json guide: the data-model hourglass, how the derive works, enum representations, the full serde_json API, dynamic Value, attributes, custom (de)serialization, zero-copy, streaming, and errors — with diagrams.",
+          "summary": "The complete serde & serde_json guide: the data-model hourglass, how the derive works, enum representations, the full serde_json API, dynamic Value, attributes, custom (de)serialization, zero-copy, streaming, and errors \u2014 with diagrams.",
           "keywords": "serde serde_json Serialize Deserialize derive data model hourglass Serializer Deserializer Visitor attributes rename rename_all default skip flatten alias deny_unknown_fields tag content untagged enum representation to_string to_vec to_writer to_value from_str from_slice from_reader from_value Value json pointer as_str serialize_with deserialize_with with borrow zero-copy streaming StreamDeserializer error classify JSON YAML TOML bincode formats"
         },
         {
@@ -937,7 +937,7 @@
           "file": "axum.md",
           "level": "advanced",
           "time": "42 min",
-          "summary": "The complete production guide to axum: routing, extractors, responses, error handling, state, tower middleware, and how it works internally — capped with a full e-commerce admin analytics API project.",
+          "summary": "The complete production guide to axum: routing, extractors, responses, error handling, state, tower middleware, and how it works internally \u2014 capped with a full e-commerce admin analytics API project.",
           "keywords": "axum web server router handler extractor tower middleware state json api rest hyper service layer IntoResponse FromRequest FromRequestParts CORS tracing timeout graceful shutdown websocket sse fallback nest merge auth api-key analytics ecommerce admin project internals lifecycle vtable"
         },
         {
@@ -946,8 +946,17 @@
           "file": "actix.md",
           "level": "advanced",
           "time": "40 min",
-          "summary": "The complete production guide to Actix Web: routing, extractors, bodies & file uploads, Responder & ResponseError, web::Data state, middleware, and the multi-worker internals — capped with the same e-commerce admin analytics API project as the axum chapter.",
+          "summary": "The complete production guide to Actix Web: routing, extractors, bodies & file uploads, Responder & ResponseError, web::Data state, middleware, and the multi-worker internals \u2014 capped with the same e-commerce admin analytics API project as the axum chapter.",
           "keywords": "actix actix-web web server app httpserver worker route scope handler extractor FromRequest web::Data Responder ResponseError HttpResponse json middleware wrap from_fn Logger cors compress multipart payload upload graceful shutdown analytics ecommerce admin project internals worker model service arbiter lifecycle"
+        },
+        {
+          "id": "rocket",
+          "title": "Rocket: Ergonomic Web Servers",
+          "file": "rocket.md",
+          "level": "intermediate",
+          "time": "20 min",
+          "summary": "A lighter tour of Rocket: typed routing with request forwarding, request guards, derivable responders, managed state, and fairings \u2014 capped with a small bookmarks API.",
+          "keywords": "rocket web server request guard responder derive Responder FromRequest FromForm managed state fairing catcher launch routes mount forward json form file upload TempFile bookmarks api"
         },
         {
           "id": "tonic",
@@ -973,7 +982,7 @@
           "file": "sqlx.md",
           "level": "advanced",
           "time": "28 min",
-          "summary": "The complete sqlx guide: the pool, every query builder and fetch method explained simply, binding, FromRow, transactions, migrations, and errors — with visuals — ending in a generic CRUD handler built from enums, structs, and generics.",
+          "summary": "The complete sqlx guide: the pool, every query builder and fetch method explained simply, binding, FromRow, transactions, migrations, and errors \u2014 with visuals \u2014 ending in a generic CRUD handler built from enums, structs, and generics.",
           "keywords": "sqlx database postgres mysql sqlite pool query query_as query_scalar macro fetch_one fetch_optional fetch_all fetch execute rows_affected bind parameters injection FromRow row get try_get transaction begin commit rollback migrations DATABASE_URL prepare offline error RowNotFound generic crud handler enum struct trait Repository compile-time checked async"
         },
         {
@@ -1113,7 +1122,7 @@
           "file": "conditional-compilation.md",
           "level": "intermediate",
           "time": "22 min",
-          "summary": "cfg, cfg_attr and Cargo features — including feature unification and why features must be additive.",
+          "summary": "cfg, cfg_attr and Cargo features \u2014 including feature unification and why features must be additive.",
           "keywords": "cfg cfg_attr feature flags target_os target_arch target_family debug_assertions test doc all any not unification additive dep: no-default-features all-features docsrs doc_cfg platform module"
         },
         {
@@ -1122,7 +1131,7 @@
           "file": "debugging.md",
           "level": "intermediate",
           "time": "22 min",
-          "summary": "From dbg! and backtraces up to rust-gdb, Miri and tokio-console — the whole debugging ladder.",
+          "summary": "From dbg! and backtraces up to rust-gdb, Miri and tokio-console \u2014 the whole debugging ladder.",
           "keywords": "debug dbg macro println eprintln backtrace rust_backtrace panic hook catch_unwind nocapture assert_eq pretty_assertions rust-gdb rust-lldb breakpoint watchpoint vscode launch.json miri sanitizer asan tsan valgrind tokio-console cargo expand type_name"
         },
         {
@@ -1181,7 +1190,7 @@
           "file": "observability.md",
           "level": "advanced",
           "time": "24 min",
-          "summary": "Logs, metrics and traces with tracing and OpenTelemetry — structured fields, cardinality, percentiles and health checks.",
+          "summary": "Logs, metrics and traces with tracing and OpenTelemetry \u2014 structured fields, cardinality, percentiles and health checks.",
           "keywords": "observability tracing instrument span structured logging json rust_log envfilter metrics counter gauge histogram prometheus cardinality percentile p99 golden signals opentelemetry otlp jaeger sampling correlation id health check liveness readiness"
         }
       ]
@@ -1380,7 +1389,7 @@
           "file": "dsa-sorting.md",
           "level": "intermediate",
           "time": "18 min",
-          "summary": "Bubble, insertion, merge, quick, heap & radix — visualized.",
+          "summary": "Bubble, insertion, merge, quick, heap & radix \u2014 visualized.",
           "keywords": "sorting bubble insertion selection merge quicksort heapsort radix counting stable"
         },
         {
@@ -1398,7 +1407,7 @@
           "file": "dsa-recursion.md",
           "level": "intermediate",
           "time": "16 min",
-          "summary": "Solve problems by breaking them down — permutations, N-Queens.",
+          "summary": "Solve problems by breaking them down \u2014 permutations, N-Queens.",
           "keywords": "recursion backtracking base case permutations combinations n-queens subsets maze"
         },
         {
@@ -1407,7 +1416,7 @@
           "file": "dsa-divide-conquer.md",
           "level": "intermediate",
           "time": "16 min",
-          "summary": "Split, solve, and combine — the pattern behind merge sort.",
+          "summary": "Split, solve, and combine \u2014 the pattern behind merge sort.",
           "keywords": "divide conquer merge sort master theorem recurrence binary search quickselect"
         },
         {
@@ -1416,7 +1425,7 @@
           "file": "dsa-greedy.md",
           "level": "intermediate",
           "time": "18 min",
-          "summary": "Make the locally best choice — when it works and when it fails.",
+          "summary": "Make the locally best choice \u2014 when it works and when it fails.",
           "keywords": "greedy interval scheduling huffman coin change activity selection exchange argument"
         },
         {
@@ -1461,7 +1470,7 @@
           "file": "dsa-patterns.md",
           "level": "intermediate",
           "time": "24 min",
-          "summary": "A framework for approaching any problem plus the core reusable patterns — two pointers, sliding window, prefix sums, fast & slow pointers, binary search on the answer, backtracking, and monotonic stacks — each with triggers, runnable code, and tips.",
+          "summary": "A framework for approaching any problem plus the core reusable patterns \u2014 two pointers, sliding window, prefix sums, fast & slow pointers, binary search on the answer, backtracking, and monotonic stacks \u2014 each with triggers, runnable code, and tips.",
           "keywords": "algorithm patterns problem solving two pointers sliding window prefix sums fast slow pointers Floyd binary search on answer monotonic predicate backtracking subsets permutations monotonic stack next greater cheat sheet interview complexity constraints recognize pattern"
         },
         {
@@ -1470,7 +1479,7 @@
           "file": "dsa-design.md",
           "level": "advanced",
           "time": "22 min",
-          "summary": "The craft of building a custom data structure: the design process (operations, complexity, representation, invariants, API), Rust-specific choices (arenas over Rc/RefCell, encapsulating invariants), and worked runnable examples — a ring buffer and an augmented min-stack.",
+          "summary": "The craft of building a custom data structure: the design process (operations, complexity, representation, invariants, API), Rust-specific choices (arenas over Rc/RefCell, encapsulating invariants), and worked runnable examples \u2014 a ring buffer and an augmented min-stack.",
           "keywords": "design data structure custom build ring buffer circular queue min stack augmentation arena index linked list invariant representation complexity API generic Iterator ownership Rc RefCell slotmap LRU cache model test encapsulation"
         },
         {
@@ -1479,7 +1488,7 @@
           "file": "dsa-math.md",
           "level": "intermediate",
           "time": "24 min",
-          "summary": "GCD and LCM, prime sieves, modular arithmetic, fast exponentiation and combinatorics — with the overflow handling textbooks omit.",
+          "summary": "GCD and LCM, prime sieves, modular arithmetic, fast exponentiation and combinatorics \u2014 with the overflow handling textbooks omit.",
           "keywords": "number theory gcd lcm euclid extended euclid sieve eratosthenes prime primality trial division miller rabin factorization modular arithmetic mod inverse fermat pow_mod exponentiation squaring binomial coefficient factorial pascal combinatorics catalan overflow checked_add rem_euclid isqrt"
         },
         {
@@ -1516,7 +1525,7 @@
       "chapters": [
         {
           "id": "appendix-keywords",
-          "title": "A · Keywords",
+          "title": "A \u00b7 Keywords",
           "file": "appendix-keywords.md",
           "level": "beginner",
           "time": "6 min",
@@ -1526,7 +1535,7 @@
         },
         {
           "id": "appendix-operators",
-          "title": "B · Operators & Symbols",
+          "title": "B \u00b7 Operators & Symbols",
           "file": "appendix-operators.md",
           "level": "beginner",
           "time": "8 min",
@@ -1536,7 +1545,7 @@
         },
         {
           "id": "appendix-derivable",
-          "title": "C · Derivable Traits",
+          "title": "C \u00b7 Derivable Traits",
           "file": "appendix-derivable.md",
           "level": "beginner",
           "time": "8 min",
@@ -1546,7 +1555,7 @@
         },
         {
           "id": "appendix-glossary",
-          "title": "D · Glossary",
+          "title": "D \u00b7 Glossary",
           "file": "appendix-glossary.md",
           "level": "beginner",
           "time": "10 min",
@@ -1556,7 +1565,7 @@
         },
         {
           "id": "appendix-cheatsheet",
-          "title": "E · The Rust Cheat Sheet",
+          "title": "E \u00b7 The Rust Cheat Sheet",
           "file": "appendix-cheatsheet.md",
           "level": "beginner",
           "time": "8 min",
@@ -1566,13 +1575,22 @@
         },
         {
           "id": "appendix-crates",
-          "title": "F · Crates You Can Use in the Playground",
+          "title": "F \u00b7 Crates You Can Use in the Playground",
           "file": "appendix-crates.md",
           "level": "beginner",
           "time": "5 min",
-          "summary": "Which crates are pre-loaded on the Rust Playground so Run works without a Cargo.toml — linked to where the book teaches each.",
+          "summary": "Which crates are pre-loaded on the Rust Playground so Run works without a Cargo.toml \u2014 linked to where the book teaches each.",
           "keywords": "playground crates supported available serde serde_json rand regex itertools chrono anyhow thiserror tokio futures rayon clap tracing reqwest once_cell uuid list appendix run",
           "appendix": "F"
+        },
+        {
+          "id": "appendix-details",
+          "title": "G \u00b7 async-trait, Feature Flags & Compiler Options",
+          "file": "appendix-details.md",
+          "level": "intermediate",
+          "time": "10 min",
+          "summary": "Why #[async_trait] existed and why Rust 1.75 made it mostly unnecessary, plus the basics of Cargo feature flags and compiler/profile options.",
+          "keywords": "async_trait async-trait async fn in traits AFIT RPITIT dyn object safety Rust 1.75 feature flags cargo features default-features additive cfg feature optional dependency profile opt-level lto codegen-units panic abort strip RUSTFLAGS target-cpu release"
         }
       ]
     }

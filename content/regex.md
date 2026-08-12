@@ -100,6 +100,58 @@ fn main() {
 }
 ```
 
+## Splitting, and flags
+
+Two more everyday operations. `split` treats the pattern as a delimiter, and **inline flags** (or `RegexBuilder`) change how matching works:
+
+```rust
+use regex::{Regex, RegexBuilder};
+
+fn main() {
+    // Split on any run of whitespace or commas:
+    let sep = Regex::new(r"[\s,]+").unwrap();
+    let fields: Vec<&str> = sep.split("alpha, beta,,  gamma").collect();
+    println!("{fields:?}");
+
+    // Inline flags go at the start of the pattern:
+    //   (?i) case-insensitive   (?m) ^/$ match line boundaries   (?s) . matches \n
+    let ci = Regex::new(r"(?i)rust").unwrap();
+    println!("{} {}", ci.is_match("RUST"), ci.is_match("Rustacean"));
+
+    let multi = Regex::new(r"(?m)^error").unwrap();
+    println!("{}", multi.find_iter("ok\nerror: bad\nerror: worse").count());
+
+    // RegexBuilder is the same thing, spelled out — clearer for several flags:
+    let re = RegexBuilder::new(r"^\w+$")
+        .case_insensitive(true)
+        .multi_line(true)
+        .build()
+        .unwrap();
+    println!("{}", re.is_match("Hello"));
+}
+```
+
+> [!warning] Escape any user input you splice into a pattern
+> Building a pattern from user text without escaping is the regex equivalent of SQL injection — at best it fails to match, at worst it's a denial of service. `regex::escape` neutralises every metacharacter:
+> ```rust
+> use regex::Regex;
+>
+> fn main() {
+>     let user_input = "1+1"; // `+` is a quantifier — as a pattern this is broken
+>     let broken = Regex::new(user_input);
+>     println!("unescaped compiles? {}", broken.is_ok());
+>
+>     let safe = Regex::new(&regex::escape(user_input)).unwrap();
+>     println!("escaped matches literally: {}", safe.is_match("what is 1+1?"));
+> }
+> ```
+> And if all you need is a literal substring, skip regex entirely — `haystack.contains(needle)` is simpler and faster.
+
+> [!performance] Rust's regex has no catastrophic backtracking — that's a real guarantee
+> The `regex` crate compiles patterns to a finite automaton and matches in time **linear in the input length**, regardless of the pattern. The classic ReDoS attack — `(a+)+$` against a long string of `a`s, which hangs PCRE, Python, and JavaScript engines for exponential time — simply runs fast here.
+>
+> The price is that Rust's engine deliberately **omits backreferences (`\1`) and lookaround (`(?=…)`)**, because those features are what make linear-time matching impossible. If you truly need them, the `fancy-regex` crate adds them with backtracking — and with the performance characteristics that implies. For almost everything else, the guarantee is worth more than the features, especially when patterns touch untrusted input.
+
 ## The pattern cheat-sheet
 
 <figure class="diagram">

@@ -124,12 +124,59 @@ fn main() {
 }
 ```
 
-## Object safety
+## A trait object is a fat pointer
 
-Not every trait can become a trait object. A trait is **object-safe** only if its methods can be called through a pointer without knowing the concrete type. The two most common rules: methods can't return `Self` by value, and methods can't have generic type parameters.
+The "vtable" in the diagram isn't a metaphor — it's a second word carried alongside the data pointer, and you can measure it:
 
-> [!mistake] "the trait cannot be made into an object"
-> If you see `error[E0038]: the trait cannot be made into an object`, you tried to use `dyn` with a trait that isn't object-safe — often because it has a method returning `Self` (like `Clone`) or a generic method. The fix is usually to use generics (`impl Trait`) instead, or to redesign the method to not return `Self`. Most traits you write *are* object-safe; this only bites occasionally.
+```rust
+use std::mem::size_of;
+
+trait Draw { fn draw(&self); }
+
+struct Button;
+impl Draw for Button {
+    fn draw(&self) { println!("[button]"); }
+}
+
+fn main() {
+    println!("&Button        {} bytes  ← thin: just an address", size_of::<&Button>());
+    println!("&dyn Draw      {} bytes  ← fat: address + vtable pointer", size_of::<&dyn Draw>());
+    println!("Box<Button>    {} bytes", size_of::<Box<Button>>());
+    println!("Box<dyn Draw>  {} bytes", size_of::<Box<dyn Draw>>());
+
+    let b = Button;
+    let as_dyn: &dyn Draw = &b;
+    as_dyn.draw(); // looks up `draw` in the vtable, then calls it
+}
+```
+
+The **vtable** is a small static table the compiler generates per (type, trait) pair, holding pointers to that type's method implementations plus its size and drop function. One vtable exists per combination — not per value — so the runtime cost is the extra pointer and one indirect call, not any allocation.
+
+## Dyn compatibility (formerly "object safety")
+
+Not every trait can become a trait object. A trait is **dyn-compatible** only if its methods can be called through a pointer without knowing the concrete type. The two most common rules: methods can't return `Self` by value, and methods can't have generic type parameters.
+
+```rust,ignore
+trait Spawner {
+    fn spawn(&self) -> Self;    // returns Self by value…
+}
+
+let boxed: Box<dyn Spawner>;    // ❌ …so this is rejected
+// error[E0038]: the trait `Spawner` is not dyn compatible
+```
+
+Why those two rules? A `Box<dyn Spawner>` would have to allocate space for the returned `Self` without knowing how big it is; and a generic method would need a separate vtable entry per instantiation, which can't be enumerated in advance.
+
+> [!note] "Object safe" was renamed to "dyn compatible"
+> If you search for this error you'll find plenty of material quoting `the trait cannot be made into an object`. That was the wording for years; recent Rust renamed the concept to **dyn compatibility**, so the compiler now says `the trait ... is not dyn compatible`. Same rules, same `E0038`, new name — chosen because "safety" wrongly suggested a connection to `unsafe`. Expect to see both spellings in the wild for a long while.
+
+> [!mistake] What to do when a trait isn't dyn-compatible
+> You have three options, roughly in order of preference:
+> 1. **Use generics instead** — `fn render<T: Draw>(item: &T)` needs no vtable at all, and is faster. Only reach for `dyn` when you truly need a *mixed* collection.
+> 2. **Split the trait** — keep the dyn-compatible methods in one trait and the `Self`-returning or generic ones in a separate extension trait.
+> 3. **Change the signature** — return `Box<dyn Trait>` instead of `Self`, or replace a generic method parameter with `&dyn` too.
+>
+> Most traits you write are dyn-compatible without any effort; this bites mainly with `Clone` (returns `Self`) and builder-style APIs. Note that `dyn Any`, `dyn Error`, and `dyn Fn` are all dyn-compatible, which is why they're so widely used.
 
 ## Summary
 

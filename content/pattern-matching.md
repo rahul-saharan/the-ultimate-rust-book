@@ -166,6 +166,81 @@ fn main() {
 }
 ```
 
+**Rest patterns** (`..`) ignore the parts you don't care about — essential once structs get wide:
+
+```rust
+#[derive(Debug)]
+struct Config {
+    host: String,
+    port: u16,
+    retries: u8,
+    verbose: bool,
+    timeout_ms: u32,
+}
+
+fn main() {
+    let c = Config {
+        host: "localhost".into(), port: 8080,
+        retries: 3, verbose: true, timeout_ms: 500,
+    };
+
+    // Name only what you need; `..` covers the rest.
+    let Config { host, port, .. } = &c;
+    println!("connecting to {host}:{port}");
+
+    match &c {
+        Config { verbose: true, .. } => println!("verbose mode on"),
+        Config { port: 80 | 443, .. } => println!("standard web port"),
+        _ => println!("something else"),
+    }
+
+    // Tuples too — `..` stands for any number of middle elements:
+    let rgba = (255, 128, 0, 255);
+    let (red, .., alpha) = rgba;
+    println!("red={red} alpha={alpha}");
+}
+```
+
+**Slice patterns** match on the *shape* of a slice or array — one of Rust's most underused features:
+
+```rust
+fn describe(numbers: &[i32]) -> String {
+    match numbers {
+        [] => "empty".to_string(),
+        [single] => format!("exactly one: {single}"),
+        [first, second] => format!("a pair: {first} and {second}"),
+        // `rest @ ..` binds the middle as a sub-slice:
+        [first, rest @ ..] => format!("starts with {first}, then {} more", rest.len()),
+    }
+}
+
+fn main() {
+    println!("{}", describe(&[]));
+    println!("{}", describe(&[42]));
+    println!("{}", describe(&[1, 2]));
+    println!("{}", describe(&[1, 2, 3, 4]));
+
+    // Match both ends at once. `path` is a [&str; 4] of known length, so this
+    // pattern ALWAYS matches — a plain `let` is right; `if let` would warn.
+    let path = ["usr", "local", "bin", "rustc"];
+    let [root, .., last] = path;
+    println!("from {root} down to {last}");
+
+    // Real parsing work. Note the `[..]`: matching arms of DIFFERENT lengths
+    // requires a slice, because a fixed-size array's length is part of its type.
+    let tokens = ["set", "volume", "11"];
+    match &tokens[..] {
+        ["set", key, value] => println!("setting {key} = {value}"),
+        ["get", key] => println!("reading {key}"),
+        ["quit"] => println!("bye"),
+        _ => println!("unrecognised command"),
+    }
+}
+```
+
+> [!mistake] Arrays match by exact length; slices don't
+> `[&str; 3]` is a *three-element* type, so `["get", key]` against it is `error[E0527]: pattern requires 2 elements but array has 3` — the arm could never fire, so the compiler rejects it outright. Convert to a slice first (`&arr[..]`, `arr.as_slice()`, or take a `&[T]` parameter) and patterns of any length become legal. This is a good error to have met once: it's the type system pointing out a genuinely dead branch.
+
 <figure class="diagram">
 <svg viewBox="0 0 640 180" role="img" aria-label="A value flows through match arms top to bottom until one pattern fits">
   <style>
@@ -238,23 +313,112 @@ fn main() {
 }
 ```
 
+## Refutable and irrefutable patterns
+
+One concept explains a whole family of errors. A pattern is **irrefutable** if it *always* matches, and **refutable** if it might not:
+
+```rust
+fn main() {
+    let pair = (1, 2);
+
+    // IRREFUTABLE — a tuple of two always destructures. `let` accepts it.
+    let (a, b) = pair;
+    println!("{a} {b}");
+
+    let opt: Option<i32> = Some(5);
+
+    // `Some(x)` is REFUTABLE — `opt` might be None, so plain `let` is rejected:
+    //   let Some(x) = opt;   // error[E0005]: refutable pattern in local binding
+    //
+    // Use a construct that handles the failure:
+    if let Some(x) = opt { println!("if let: {x}"); }
+    let Some(y) = opt else { return };   // let-else supplies the escape route
+    println!("let else: {y}");
+}
+```
+
+| Construct | Requires | Because |
+|---|---|---|
+| `let PATTERN = …;` | **irrefutable** | there's no branch to take if it fails |
+| function parameters | **irrefutable** | same — no alternative path exists |
+| `for PATTERN in …` | **irrefutable** | each iteration must bind |
+| `if let` / `while let` / `let … else` | **refutable** | they exist precisely to handle "didn't match" |
+| `match` arms | either | non-final arms may be refutable; the set must be exhaustive |
+
+> [!mistake] `error[E0005]: refutable pattern in local binding`
+> This error is the compiler saying "your pattern might not match, and you haven't said what to do then." The fix is always to switch to a construct that has a failure branch — `if let`, `let … else`, or a full `match`. Conversely, writing `if let (a, b) = pair` on an irrefutable pattern gets you an "irrefutable `if let` pattern" *warning*: the `else` can never run, so the `if` is pointless.
+
+## Matching through references
+
+A subtlety that used to trip up every beginner, and mostly doesn't any more. When you match on a **reference**, Rust's *match ergonomics* automatically bind the inner values as references too:
+
+```rust
+fn main() {
+    let names = vec![String::from("ada"), String::from("grace")];
+
+    // `&names[0]` is a &String, and `name` binds as &String automatically —
+    // no `&` in the pattern, no move out of the Vec.
+    match names.first() {
+        Some(name) => println!("first is {name}"),  // name: &String
+        None => println!("empty"),
+    }
+
+    // The same applies when iterating by reference:
+    for name in &names {
+        match name.as_str() {                        // name: &String
+            "ada" => println!("found Ada"),
+            other => println!("saw {other}"),
+        }
+    }
+
+    println!("names still owned: {names:?}"); // nothing was moved
+}
+```
+
+Before match ergonomics you had to write `Some(ref name)` or match on `&Some(x)` explicitly. You'll still see `ref` in older code — it means "bind by reference instead of moving" — but modern Rust infers it.
+
+> [!mistake] "cannot move out of borrowed content" in a match arm
+> If a pattern tries to *move* a non-`Copy` value out of something you only borrowed, you'll get `E0507`. The fix is usually one of: match on a reference (`match &value`), bind by reference (`Some(ref x)`), call `.as_ref()` to turn `&Option<T>` into `Option<&T>`, or `.clone()` if you genuinely need ownership. See [References & Borrowing](#/ch/references-borrowing) for why the compiler objects.
+
 > [!best] Choose the lightest tool that fits
 > Use **`match`** when you handle several cases (and want exhaustiveness). Use **`if let`** when you care about one case. Use **`while let`** to loop until a pattern stops matching. Use **`let ... else`** to extract-or-return. Reaching for the right one keeps code both correct and readable.
 
 > [!tip] Patterns are everywhere
 > Patterns aren't just for `match`. Every `let` uses one (`let (a, b) = pair;`), as do function parameters (`fn dist((x, y): (f64, f64))`) and `for` loops (`for (i, v) in iter.enumerate()`). Once you see patterns, you see them everywhere in Rust.
 
+> [!warning] `_` silently opts out of exhaustiveness checking
+> The catch-all is convenient and it costs you the feature that makes `match` valuable. Write this:
+> ```rust,ignore
+> match status {
+>     Status::Active => …,
+>     Status::Paused => …,
+>     _ => log("unknown"),      // ← catches everything else, forever
+> }
+> ```
+> …and when a teammate adds `Status::Cancelled` next month, this `match` compiles happily and silently logs "unknown" instead of handling it. Had you listed the variants explicitly, the compiler would have marched you here.
+>
+> The rule of thumb: use `_` for genuinely open-ended domains (any integer, any string), and **list enum variants explicitly** even when several share behaviour — `Status::Paused | Status::Draining => …` keeps exhaustiveness while staying concise. If a `_` arm really is right, consider `#[deny(non_exhaustive_omitted_patterns)]` or a comment explaining why new variants shouldn't need attention here.
+
 ## Summary
 
 - **`match`** compares a value to **patterns** top-to-bottom and runs the first fit; it must be **exhaustive**, so you can never forget a case.
 - Patterns **bind** inner data (`Some(n)`, `Shape::Circle(r)`), so `match` both branches *and* extracts.
 - Rich features: **`_`** wildcard, named catch-alls, **ranges** (`1..=5`), **or-patterns** (`|`), **`@` bindings**, and **guards** (`if …`).
-- **Destructuring** pulls apart tuples and structs directly in patterns.
+- **Destructuring** pulls apart tuples and structs directly in patterns; **`..`** ignores the rest.
+- **Slice patterns** match on shape — `[]`, `[single]`, `[first, rest @ ..]`, `[first, .., last]` — and turn small parsing jobs into one `match`.
+- Patterns are **refutable** (might not match → needs `if let`/`match`/`let … else`) or **irrefutable** (always matches → allowed in plain `let`, parameters, and `for`).
+- **Match ergonomics** bind through references automatically, so matching on `&T` gives you `&`-bound variables without moving anything.
 - **`if let`**, **`while let`**, and **`let … else`** are lighter tools for the common one-pattern cases.
+- **`_` opts out of exhaustiveness** — prefer listing enum variants explicitly so the compiler flags every `match` when a variant is added.
 
 > [!exercise] Try it yourself
 > 1. Write a `match` over `Option<i32>` that prints the number doubled, or `"nothing"` for `None`.
 > 2. Match an integer with ranges: `"negative"`, `"zero"`, `"small (1–9)"`, `"big"`. Add a guard for even vs. odd in the "big" case.
 > 3. Rewrite a two-arm `match` on an `Option` as an `if let`/`else`. Then drain a `vec![…]` with `while let Some(x) = v.pop()`.
+> 4. Write a function taking `&[i32]` that returns the first and last elements as a tuple, using a single slice pattern. Handle the empty and single-element cases.
+> 5. Parse a command with slice patterns: `["add", a, b]`, `["neg", a]`, `["quit"]`, anything else. Return a `Result`.
+> 6. Try `let Some(x) = some_option;` and read `E0005`. Fix it three ways: `if let`, `let … else`, and `match`.
+> 7. Add a variant to an enum you match on with a `_` arm, and confirm nothing breaks. Replace `_` with explicit variants and watch the compiler find the gap.
+> 8. Destructure a five-field struct binding only two fields with `..`, then do the same inside a `match` arm with a literal test on a third field.
 
 You can now define types (structs, enums) and inspect them (patterns). The last piece of modeling data is giving your types *behavior* — that's what **methods** do.

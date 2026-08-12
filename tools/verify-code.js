@@ -22,7 +22,7 @@ const CONCURRENCY = 8;
 // Blocks referencing these compile inside that cargo project instead of bare rustc.
 const PROJECT = path.join(ROOT, 'tools', 'verify-project');
 const KNOWN_CRATES = ['tokio', 'futures', 'serde', 'serde_json', 'rand', 'regex', 'anyhow', 'thiserror', 'itertools',
-  'axum', 'tower', 'tower_http', 'tracing', 'http_body_util'];
+  'axum', 'tower', 'tower_http', 'tracing', 'http_body_util', 'rayon', 'clap', 'chrono', 'once_cell', 'uuid', 'tracing_subscriber'];
 const CRATE_RE = new RegExp('\\b(' + KNOWN_CRATES.join('|') + ')\\b');
 function needsProject(src) { return CRATE_RE.test(src); }
 

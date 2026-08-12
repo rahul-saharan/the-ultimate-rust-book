@@ -33,6 +33,55 @@ fn main() {
 > [!tip] Alias vs. newtype
 > Use a **type alias** (`type X = Y`) purely for *readability* — it's the same type, so it adds no safety. Use the **newtype pattern** (`struct X(Y)`) when you want a *distinct* type the compiler enforces. `type Meters = f64` lets you accidentally add meters to seconds; `struct Meters(f64)` does not.
 
+### The `Result` alias — the one you'll write in every crate
+
+Aliases can be **generic**, and that unlocks the single most common pattern in the ecosystem: a crate-wide `Result` that fixes the error type so you never repeat it:
+
+```rust
+use std::fmt;
+
+#[derive(Debug)]
+pub enum ConfigError {
+    Missing(String),
+    Invalid { key: String, reason: String },
+}
+
+impl fmt::Display for ConfigError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ConfigError::Missing(k) => write!(f, "missing key `{k}`"),
+            ConfigError::Invalid { key, reason } => write!(f, "bad value for `{key}`: {reason}"),
+        }
+    }
+}
+
+/// One generic alias, used by every function in the crate.
+/// The error type is fixed; `T` still varies.
+pub type Result<T> = std::result::Result<T, ConfigError>;
+
+fn get(key: &str) -> Result<String> {          // instead of Result<String, ConfigError>
+    match key {
+        "host" => Ok("localhost".to_string()),
+        _ => Err(ConfigError::Missing(key.to_string())),
+    }
+}
+
+fn port() -> Result<u16> {                      // …and Result<u16, ConfigError>
+    Err(ConfigError::Invalid { key: "port".into(), reason: "not a number".into() })
+}
+
+fn main() {
+    println!("{:?}", get("host"));
+    println!("{}", get("nope").unwrap_err());
+    println!("{}", port().unwrap_err());
+}
+```
+
+This is exactly how `std::io::Result<T>`, `serde_json::Result<T>`, and `anyhow::Result<T>` are defined — each is a one-line generic alias over the standard `Result`.
+
+> [!mistake] Shadowing `Result` is deliberate, but say so
+> Declaring `pub type Result<T> = …` **shadows** the prelude's `Result` inside your crate, which is the point — but it surprises readers who see a two-parameter `Result<T, E>` elsewhere and wonder why yours takes one. Two habits keep it civil: note it in your crate docs, and write the full path (`std::result::Result<T, E>`) on the rare occasion you need the original, as the alias definition itself does above.
+
 ## The never type `!`
 
 Rust has a type that has **no values at all**, written `!` and called the **never type**. A function returning `!` never returns (it loops forever, panics, or exits). Its superpower: `!` **coerces to any other type**, which is what lets `continue`, `break`, `return`, and `panic!` appear in expressions of any type:
@@ -57,6 +106,30 @@ fn main() {
 
 > [!jargon] Why `!` is called "never"
 > A value of type `!` can *never* exist — so an expression of type `!` represents computation that never produces a value (it diverges). Since it never yields anything, the compiler can safely pretend it's *any* type in context. That's why `let x: i32 = panic!()` compiles: `panic!()` has type `!`, coercible to `i32` (it just never actually returns one).
+
+### Where `!` shows up without you noticing
+
+You've been relying on the never type since chapter one. Because `!` coerces to *any* type, an expression that diverges can sit in a branch that's supposed to produce a value:
+
+```rust
+fn parse_or_die(text: &str) -> i32 {
+    match text.parse::<i32>() {
+        Ok(n) => n,
+        // `panic!` has type `!`, which coerces to i32 — so both arms "return i32".
+        Err(_) => panic!("not a number: {text}"),
+    }
+}
+
+fn main() {
+    println!("{}", parse_or_die("42"));
+
+    // The same coercion makes all of these legal in value position:
+    let x: i32 = if false { 1 } else { return };     // `return` is `!`
+    println!("unreachable, but it compiles: {x}");
+}
+```
+
+`panic!`, `return`, `break`, `continue`, `std::process::exit`, `todo!`, `unimplemented!`, and an infinite `loop {}` all have type `!`. That's why a `let … else` block must diverge, why `todo!()` can stand in for any return type while you're sketching, and why `match` arms that bail out don't break type-checking.
 
 ## Dynamically sized types (DSTs)
 

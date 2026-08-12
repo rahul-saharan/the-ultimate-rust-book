@@ -7,13 +7,28 @@ This chapter is long on purpose. axum is what you will actually ship, so we cove
 > [!note] Servers don't run in the in-book playground
 > A web server binds a socket and runs forever, so the "▶ Run" button can't execute axum examples — they're marked `ignore` and are meant to be run **locally** with `cargo run`. One block in the capstone (the pure-Rust analytics core) *is* runnable, so you can execute the real aggregation logic here in the book. Everything else you copy into a project.
 
+## Five ideas every Rust web framework shares
+
+Before the axum-specific vocabulary, it helps to name the handful of concepts that **every** Rust web framework rebuilds — axum, [Actix Web](#/ch/actix), and [Rocket](#/ch/rocket) all solve the same five problems, just with different names and ergonomics. Learn them once here and the other two chapters read as "same idea, different spelling":
+
+| Concept | The problem it solves | axum's name |
+|---|---|---|
+| **Handler** | turn a plain function into something that answers a request | any `async fn` |
+| **Router** | map an incoming method + path to a handler | `Router` |
+| **Extractor** | pull typed data (path, query, JSON, state, …) out of a request | types implementing `FromRequestParts` / `FromRequest` |
+| **Response trait** | let a handler return *anything* and still produce an HTTP response | `IntoResponse` |
+| **Middleware** | wrap cross-cutting behavior (logging, auth, CORS) around handlers | `tower::Layer` |
+
+> [!tip] Same five ideas, different spelling
+> In [Actix Web](#/ch/actix) the response trait is called **`Responder`** and middleware is a **`Transform`** wrapped with `.wrap(...)`; in [Rocket](#/ch/rocket) it's also **`Responder`**, extractors are **request guards**, and middleware is a **`Fairing`**. The concepts underneath — "a function handles a route," "typed data comes from the request," "the return value becomes the response" — are identical across all three. This chapter teaches the concepts through axum's names; the other two chapters point back here rather than re-explaining them from scratch.
+
 ## Hello, axum
 
 An axum app is a **`Router`** that maps paths to handler functions, served by a tokio TCP listener:
 
 ```rust,ignore
 // Cargo.toml:
-//   axum = "0.7"
+//   axum = "0.8"
 //   tokio = { version = "1", features = ["full"] }
 
 use axum::{routing::get, Router};
@@ -59,20 +74,37 @@ fn router() -> Router {
         // One path, multiple methods — chain them:
         .route("/products", get(list_products).post(create_product))
         // Path parameter with two methods:
-        .route("/products/:id", get(get_product).delete(delete_product))
+        .route("/products/{id}", get(get_product).delete(delete_product))
 }
 ```
 
 ### Path parameters and wildcards
 
-A segment prefixed with `:` is a **capture**; a `*` prefix captures the **rest** of the path. Extract them with `Path` (covered fully below):
+A segment wrapped in **`{braces}`** is a **capture**; a `{*name}` segment captures the **rest** of the path. Extract them with `Path` (covered fully below):
 
 ```rust,ignore
 Router::new()
-    .route("/users/:id", get(get_user))              // /users/42
-    .route("/users/:id/posts/:post_id", get(get_post)) // two params
-    .route("/files/*path", get(serve_file));           // /files/a/b/c.txt → "a/b/c.txt"
+    .route("/users/{id}", get(get_user))                // /users/42
+    .route("/users/{id}/posts/{post_id}", get(get_post)) // two params
+    .route("/files/{*path}", get(serve_file));           // /files/a/b/c.txt → "a/b/c.txt"
 ```
+
+> [!warning] The correct syntax depends on your installed axum version — check before you guess
+> axum 0.8 upgraded `matchit`, and that changed path syntax: versions **before 0.8** use a leading colon for captures (`/:id`) and a bare `*` for wildcards (`/*path`); **0.8 and later** use `/{id}` and `/{*path}`. The two failure modes look nothing alike, which is what makes this confusing:
+> - **On axum ≥0.8, writing `/:id`** doesn't just mismatch — it **panics at startup** with an explicit `matchit`/`InvalidPath` error naming the route. Loud and easy to find.
+> - **On axum <0.8, writing `/{id}`** does *not* panic. `{` and `}` aren't special to the old matcher, so `/{id}` is parsed as a **literal path segment** — the server starts fine, but a request to `/users/42` never matches it (404), because the route is actually registered as the literal string `/users/{id}`. This is the silent, confusing failure: no error at all, it just never matches anything.
+>
+> If you switched to `{id}` and it *still* doesn't work, you very likely have the second case. Confirm your actual resolved version before changing syntax again:
+> ```bash,ignore
+> cargo tree -p axum          # look at the resolved version, not just what Cargo.toml says
+> # or: grep -A1 'name = "axum"' Cargo.lock
+> ```
+> If it prints `0.7.x` or earlier, either run `cargo add axum@0.8` (then re-check `cargo tree`, since a workspace or a pinned lockfile can still hold you back) and use `{id}`, or stay on `:id` until you upgrade. Don't mix the two syntaxes based on which blog post you read most recently — pick the one that matches `cargo tree`'s answer.
+
+> [!note] Two more 0.8 route-matching changes worth knowing about
+> If a route compiles, starts, uses the right `{id}`/`:id` syntax for your version, and *still* behaves unexpectedly, these are the other real 0.8 changes that trip people up:
+> - **Trailing-slash auto-redirect is gone.** Pre-0.8, a request to `/foo/` would be silently redirected to a route registered at `/foo` (or vice versa). 0.8 removed that — `/foo/` and `/foo` are now different routes, and an unregistered one goes to your `.fallback` (a 404 by default), not to its near-miss sibling.
+> - **Wildcard captures dropped the leading slash from their value.** `.route("/files/{*path}", ...)` matching `/files/a/b.txt` now yields `"a/b.txt"` in the extracted `Path<String>`, not `"/a/b.txt"`. If code written against pre-0.8 axum manually strips a leading `/` from that value, it's now stripping the wrong character.
 
 ### Nesting and merging
 
@@ -108,7 +140,7 @@ Router::new().route("/", get(hello)).fallback(not_found);
 ```
 
 > [!tip] Route order doesn't matter (mostly)
-> axum uses the **`matchit`** router under the hood — a radix-tree matcher that picks the most specific route regardless of the order you added them. You *cannot* register two routes that overlap ambiguously (e.g. `/:a` and `/:b` on the same method) — axum panics at startup, catching the bug immediately rather than at 3am in production.
+> axum uses the **`matchit`** router under the hood — a radix-tree matcher that picks the most specific route regardless of the order you added them. You *cannot* register two routes that overlap ambiguously (e.g. `/{a}` and `/{b}` on the same method) — axum panics at startup, catching the bug immediately rather than at 3am in production.
 
 ## Extractors: getting data from the request
 
@@ -123,7 +155,7 @@ use axum::{
 use serde::Deserialize;
 use std::collections::HashMap;
 
-// Path parameter: /users/:id  → the id, parsed to u32
+// Path parameter: /users/{id}  → the id, parsed to u32
 async fn get_user(Path(id): Path<u32>) -> String {
     format!("fetching user {id}")
 }
@@ -149,7 +181,7 @@ Here is the full toolbox of built-in extractors:
 
 | Extractor | Pulls from the request… | Notes |
 |-----------|--------------------------|-------|
-| `Path<T>` | URL path segments (`/users/:id`) | tuple for multiple: `Path<(u32, String)>` |
+| `Path<T>` | URL path segments (`/users/{id}`) | tuple for multiple: `Path<(u32, String)>` |
 | `Query<T>` | the query string (`?q=…`) | deserialized with serde |
 | `Json<T>` | a JSON request **body** | body-consuming (see rule below) |
 | `Form<T>` | a URL-encoded form body | body-consuming |
@@ -174,17 +206,30 @@ async fn bad(Json(body): Json<Payload>, Path(id): Path<u32>) {}
 
 ### Optional and fallible extraction
 
-Wrap an extractor in `Option<T>` to get `None` instead of an error when it's absent, or in `Result<T, T::Rejection>` to inspect *why* parsing failed:
+Wrap an extractor in `Option<T>` to get `None` when it's absent, or in `Result<T, T::Rejection>` to inspect *why* parsing failed:
 
 ```rust,ignore
-// Missing/invalid query → None instead of a 400
+// Absent query → None. A *malformed* one still rejects (see the callout).
 async fn maybe_query(params: Option<Query<SearchParams>>) -> String {
     match params {
         Some(Query(p)) => format!("searching {}", p.q),
         None => "no query given".into(),
     }
 }
+
+// Result gives you the rejection itself, so you can tell "absent" from "malformed":
+async fn explain_query(params: Result<Query<SearchParams>, QueryRejection>) -> String {
+    match params {
+        Ok(Query(p)) => format!("searching {}", p.q),
+        Err(rejection) => format!("bad query: {rejection}"),
+    }
+}
 ```
+
+> [!warning] `Option<T>` no longer swallows every error in axum 0.8
+> Before 0.8, `Option<T>` silently turned **any** extractor failure into `None` — including a genuinely malformed request, a failed database lookup inside a custom extractor, or an invalid auth token. That hid real bugs behind a cheerful `None`. In 0.8, `Option<T>` requires `T` to implement the new **`OptionalFromRequestParts`** (or `OptionalFromRequest`) trait, which distinguishes "absent" from "present but broken" — absent still yields `None`, but a malformed value now **rejects the request** instead of being silently discarded.
+>
+> Two consequences: built-in extractors mostly work as before, but a **custom** extractor wrapped in `Option<...>` won't compile until you implement `OptionalFromRequestParts` for it (implementing `FromRequestParts` alone is no longer enough). And if you *want* the old catch-everything behavior, use `Result<T, T::Rejection>` and map `Err` to your own default — that way the failure is explicit in the code rather than invisible.
 
 ### Writing your own extractor
 
@@ -192,7 +237,6 @@ Because extraction is a trait, you can create custom extractors — the standard
 
 ```rust,ignore
 use axum::{
-    async_trait,
     extract::FromRequestParts,
     http::{header, request::Parts, StatusCode},
 };
@@ -200,7 +244,7 @@ use axum::{
 /// Extracts a validated `Bearer <token>` from the Authorization header.
 struct AuthToken(String);
 
-#[async_trait]
+// Note: no `#[async_trait]` — see the callout below.
 impl<S> FromRequestParts<S> for AuthToken
 where
     S: Send + Sync,
@@ -223,6 +267,60 @@ async fn me(AuthToken(token): AuthToken) -> String {
     format!("authenticated with token {token}")
 }
 ```
+
+> [!warning] axum 0.8 removed `#[async_trait]` from extractor impls
+> Before 0.8, `FromRequestParts`/`FromRequest` impls **required** the `#[async_trait]` attribute (and `use axum::async_trait;`), because traits couldn't have `async fn` natively. Rust's return-position `impl Trait` in traits fixed that, so **axum 0.8 dropped the annotation entirely** — write a plain `async fn from_request_parts(...)` as above. Nearly every custom-extractor example written before 2025 still shows `#[async_trait]`; on 0.8 that's a compile error (`axum::async_trait` no longer exists to import). Delete the attribute and the import, and the impl body stays exactly the same.
+
+### Debugging handler errors with `#[debug_handler]`
+
+When a handler doesn't satisfy axum's `Handler` trait — a body extractor in the wrong position, non-`Send` state, a return type that isn't `IntoResponse` — the default compiler error points at the macro-generated trait impl, not at your function, producing a wall of trait-bound noise that's hard to act on. `#[axum::debug_handler]` re-points the diagnostic at the actual problem:
+
+```rust,ignore
+use axum::debug_handler;
+
+#[debug_handler]
+async fn broken(Json(body): Json<Payload>, Path(id): Path<u32>) -> impl IntoResponse {
+    // ...
+}
+// Without #[debug_handler]: a screen of "the trait `Handler<_, _>` is not satisfied…"
+// With #[debug_handler]:    "`Path<u32>` cannot be extracted after `Json<Payload>` —
+//                            the last argument must be the body extractor", on this exact line.
+```
+
+> [!tip] Reach for it the moment a handler won't compile
+> `#[debug_handler]` costs nothing at runtime and turns "why won't axum accept this function" from a multi-paragraph trait-bound essay into a one-line, actionable message. Add it to any handler while you're iterating on its signature; leave it on in development, or strip it once you're confident the shape is stable — either way it's zero-cost in release builds that don't hit the error path.
+
+### Customizing extractor rejections
+
+By default, a failed extractor (bad JSON, a non-numeric `Path<u32>`) produces axum's built-in **rejection**: a plain-text body with a sensible status code. That's fine for internal tools, but a public JSON API usually wants every error — including "you sent malformed JSON" — in the same shape as its handler-level errors. Wrap the extractor in a newtype and convert its `Rejection` into your own error type:
+
+```rust,ignore
+use axum::{
+    extract::{rejection::JsonRejection, FromRequest, Request},
+    Json,
+};
+
+/// A `Json<T>` that fails with the app's own error shape instead of axum's default rejection body.
+struct AppJson<T>(T);
+
+impl<S, T> FromRequest<S> for AppJson<T>
+where
+    Json<T>: FromRequest<S, Rejection = JsonRejection>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+
+    async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection> {
+        let Json(value) = Json::<T>::from_request(req, state)
+            .await
+            .map_err(|rej: JsonRejection| AppError::BadRequest(rej.body_text()))?;
+        Ok(AppJson(value))
+    }
+}
+```
+
+> [!note] Most apps don't need this
+> The built-in rejections are perfectly serviceable for internal services and early-stage APIs. Reach for a wrapper like `AppJson` only once a *public* API needs every failure mode — including malformed request bodies, not just handler-level errors — in one consistent `{ "error": "..." }` shape. `AppError` is defined a little further down, in [Error handling](#/ch/axum).
 
 ## Every kind of request body — JSON, forms, files, raw & streams
 
@@ -258,7 +356,7 @@ async fn login(Form(form): Form<LoginForm>) -> String {
 A `multipart/form-data` body is how browsers submit **files** (and mixed file + text fields). Enable the feature and take a `Multipart` extractor, then loop over its **fields** — each field is either a text value or a file (it has a `file_name`). Fields arrive as an async stream, so you `.await` each one:
 
 ```rust,ignore
-// Cargo.toml: axum = { version = "0.7", features = ["multipart"] }
+// Cargo.toml: axum = { version = "0.8", features = ["multipart"] }
 use axum::{extract::Multipart, http::StatusCode};
 
 async fn upload(mut multipart: Multipart) -> Result<String, StatusCode> {
@@ -551,7 +649,7 @@ Layers wrap the router like an **onion**: a request travels *inward* through eac
 ### Ready-made layers from `tower-http`
 
 ```rust,ignore
-// Cargo.toml: tower-http = { version = "0.5", features = ["trace","cors","compression-br","timeout"] }
+// Cargo.toml: tower-http = { version = "0.6", features = ["trace","cors","compression-br","timeout"] }
 use std::time::Duration;
 use tower_http::{
     compression::CompressionLayer,
@@ -653,10 +751,15 @@ async fn ws_handler(ws: WebSocketUpgrade) -> Response {
 
 async fn handle_socket(mut socket: WebSocket) {
     while let Some(Ok(Message::Text(text))) = socket.recv().await {
-        let _ = socket.send(Message::Text(format!("echo: {text}"))).await;
+        // In axum 0.8 `Message::Text` carries `Utf8Bytes`, not `String` —
+        // `.into()` converts the formatted String back into it.
+        let _ = socket.send(Message::Text(format!("echo: {text}").into())).await;
     }
 }
 ```
+
+> [!note] `Message::Text` holds `Utf8Bytes` in axum 0.8, not `String`
+> The WebSocket message payload types changed to cheap-to-clone byte buffers: `Text(Utf8Bytes)`, and `Binary`/`Ping`/`Pong` all carry `Bytes`. Reading works unchanged — `text` still derefs to `&str`, so `format!` and comparisons behave as you'd expect — but **constructing** a text message now needs a `.into()` (or `Utf8Bytes::from(...)`) on your `String`. Pre-0.8 examples that write `Message::Text(some_string)` directly won't compile.
 
 **Testing handlers** without a network — a `Router` is a tower `Service`, so drive it with `oneshot`:
 
@@ -841,14 +944,14 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = "0.7"
+axum = "0.8"
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-tower = "0.4"
-tower-http = { version = "0.5", features = ["trace", "cors", "timeout"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["trace", "cors", "timeout"] }
 tracing = "0.1"
-tracing-subscriber = "0.1"
+tracing-subscriber = "0.3"
 ```
 
 ### Step 1 — the analytics core (this block RUNS)
@@ -1142,7 +1245,7 @@ fn api_router(state: AppState) -> Router {
         .route("/analytics/top-products", get(top_products))
         .route("/analytics/revenue", get(revenue))
         .route("/orders", post(ingest_order))
-        .route("/orders/:id", get(get_order))
+        .route("/orders/{id}", get(get_order))
         // Guard the whole /api subtree with the API-key middleware:
         .layer(axum::middleware::from_fn_with_state(state.clone(), require_api_key))
         .with_state(state)
@@ -1215,6 +1318,15 @@ curl -X POST -H "x-api-key: dev-secret" -H "content-type: application/json" \
 | State-aware custom middleware | `require_api_key` |
 | tower-http layers | Trace, CORS, Timeout |
 | Graceful shutdown | `with_graceful_shutdown` |
+
+## Resources
+
+> [!best] Where to go deeper
+> - **[docs.rs/axum](https://docs.rs/axum)** — the authoritative, always-current API reference; start here whenever a signature is unclear.
+> - **[github.com/tokio-rs/axum](https://github.com/tokio-rs/axum)** — the `examples/` directory ships 40+ small, runnable programs covering nearly everything in this chapter (and more: HTTP/2, TLS, template rendering, key-value stores, gRPC-web).
+> - **[github.com/tokio-rs/axum/discussions](https://github.com/tokio-rs/axum/discussions)** — Q&A with the maintainers and the wider community; search before asking, most "why won't this compile" questions already have an answer.
+> - **[docs.rs/tower](https://docs.rs/tower)** and **[docs.rs/tower-http](https://docs.rs/tower-http)** — most of axum's middleware power lives in these two crates, not axum itself, so their docs are essential once you go past `TraceLayer`/`CorsLayer`.
+> - **[tokio.rs](https://tokio.rs)** — the umbrella project site; release notes there explain *why* things changed (like the [0.8 path syntax](#/ch/axum) covered above), not just what did.
 
 ## Summary
 

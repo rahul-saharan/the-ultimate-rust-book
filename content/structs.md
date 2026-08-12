@@ -169,6 +169,97 @@ fn main() {
 
 **Unit structs** have no fields at all. They shine when you need a type to attach behavior to but hold no data (you'll see this with traits later).
 
+## Defaults and destructuring
+
+Two everyday conveniences that pair with the shortcuts above:
+
+```rust
+#[derive(Debug, Default)]
+#[allow(dead_code)] // some fields are only shown via Debug here
+struct ServerConfig {
+    host: String,   // ""
+    port: u16,      // 0
+    verbose: bool,  // false
+    retries: u8,    // 0
+}
+
+fn main() {
+    // `Default` gives every field its zero value…
+    let base = ServerConfig::default();
+    println!("{base:?}");
+
+    // …and combines with update syntax to override just what you care about:
+    let custom = ServerConfig {
+        host: "example.com".to_string(),
+        port: 8080,
+        ..Default::default()
+    };
+    println!("{custom:?}");
+
+    // Destructuring pulls fields out into variables:
+    let ServerConfig { host, port, .. } = &custom;
+    println!("connecting to {host}:{port}");
+}
+```
+
+`#[derive(Default)]` requires every field to implement `Default` itself. When the sensible default isn't the zero value, write the impl by hand:
+
+```rust
+#[derive(Debug)]
+struct ServerConfig { host: String, port: u16, retries: u8 }
+
+impl Default for ServerConfig {
+    fn default() -> Self {
+        ServerConfig {
+            host: "localhost".to_string(),
+            port: 8080,      // a real default, not 0
+            retries: 3,
+        }
+    }
+}
+
+fn main() {
+    println!("{:?}", ServerConfig::default());
+    println!("{:?}", ServerConfig { port: 9000, ..Default::default() });
+}
+```
+
+> [!tip] When a struct grows many optional fields, reach for a builder
+> Update syntax handles "mostly defaults" nicely, but once construction has ordering rules or validation, the **builder pattern** is clearer: `Server::builder().host("x").port(80).build()?`. Each setter returns `Self` so calls chain, and `build()` returns a `Result` so invalid combinations fail loudly. See [Rust Design Patterns](#/ch/idioms-patterns) for the full shape, and [API Design](#/ch/api-design) for why a builder is also the friendlier choice for a public API — you can add options later without breaking anyone.
+
+## Structs compose
+
+A struct field can be another struct, which is how real data models get built — small, well-named pieces nested into bigger ones:
+
+```rust
+#[derive(Debug, Clone)]
+struct Address { street: String, city: String }
+
+#[derive(Debug, Clone)]
+struct Customer { name: String, address: Address, orders: Vec<u32> }
+
+fn main() {
+    let c = Customer {
+        name: "Ada".to_string(),
+        address: Address { street: "1 Analytical Way".to_string(), city: "London".to_string() },
+        orders: vec![101, 102],
+    };
+
+    // Nested access reads left to right:
+    println!("{} of {}", c.name, c.address.city);
+    println!("{} orders", c.orders.len());
+
+    // Nested destructuring works too:
+    let Customer { name, address: Address { city, .. }, .. } = &c;
+    println!("{name} lives in {city}");
+}
+```
+
+> [!tip] Struct, tuple, or enum?
+> - **Struct** — several pieces of data that are all present at once, and benefit from names. The default.
+> - **Tuple** — two or three values whose meaning is obvious from position and context, usually as a return value. No name needed.
+> - **[Enum](#/ch/enums)** — the data is *one of* several alternatives, not all of them at once. If you find yourself writing a struct where "only some fields are valid depending on a `kind` field," that's an enum trying to get out.
+
 ## Ownership tip: prefer owned fields
 
 Our `User` struct stored `String` (owned) rather than `&str` (borrowed). That's intentional: it means each `User` **owns** all its data and is valid for as long as the struct itself. Storing references in a struct is possible but requires **lifetimes** (a later [chapter](#/ch/lifetimes)) to prove the referenced data outlives the struct.

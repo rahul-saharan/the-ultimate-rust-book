@@ -210,6 +210,64 @@ fn main() {
 > [!tip] The `Result`-collecting trick is a hidden gem
 > `iter.map(fallible).collect::<Result<Vec<_>, _>>()` runs a fallible operation over every item and gives you **either** all the successes as a `Vec` **or** the first error — no manual loop, no early-return boilerplate. It's one of the most satisfying one-liners in Rust.
 
+## Four things that catch everyone
+
+The adapters themselves are easy; these are the friction points:
+
+```rust
+fn main() {
+    let words = vec!["3", "14", "oops", "15"];
+
+    // 1. A chain with no consumer does NOTHING — and warns.
+    //    words.iter().map(|w| println!("{w}"));   // ⚠ unused `Map` that must be used
+    //    Add a consumer (for_each, collect, sum…) or use a `for` loop.
+    words.iter().for_each(|w| print!("{w} "));
+    println!();
+
+    // 2. `collect()` needs to know the target type. Annotate the binding
+    //    or use a turbofish — the error is "type annotations needed".
+    let lengths: Vec<usize> = words.iter().map(|w| w.len()).collect();
+    let joined = words.iter().copied().collect::<Vec<&str>>().join("-");
+    println!("{lengths:?} {joined}");
+
+    // 3. `cloned()` vs `copied()`: same job, but copied() only accepts Copy
+    //    types and signals "this is cheap". Prefer it when it applies.
+    let nums = [1, 2, 3];
+    let a: Vec<i32> = nums.iter().copied().collect();
+    let b: Vec<i32> = nums.iter().cloned().collect();
+    println!("{a:?} {b:?}");
+
+    // 4. Collecting into Result short-circuits on the first Err —
+    //    the single most useful collect trick in the language.
+    let all_ok: Result<Vec<i32>, _> = vec!["1", "2", "3"].iter().map(|s| s.parse::<i32>()).collect();
+    let has_bad: Result<Vec<i32>, _> = words.iter().map(|s| s.parse::<i32>()).collect();
+    println!("{all_ok:?}");
+    println!("{:?}", has_bad.is_err());
+}
+```
+
+That last one deserves emphasis: `Iterator<Item = Result<T, E>>` collects into `Result<Vec<T>, E>` — you get either every value or the first error, with no manual loop. The same works for `Option`, and `partition()` splits successes from failures when you'd rather keep both.
+
+One more worth internalising: **`sum()` and `product()` need to know their output type**, and they panic on overflow in debug builds just like `+` does:
+
+```rust
+fn main() {
+    let nums = [1i32, 2, 3, 4];
+
+    // The turbofish tells `sum` what to accumulate into:
+    println!("{}", nums.iter().sum::<i32>());
+    let total: i64 = nums.iter().map(|&n| n as i64).sum(); // widen first for big sums
+    println!("{total}");
+
+    // `checked_sum` doesn't exist — fold with checked_add when overflow is possible:
+    let safe = nums.iter().try_fold(0i32, |acc, &n| acc.checked_add(n));
+    println!("{safe:?}");
+}
+```
+
+> [!tip] When std runs out, reach for `itertools`
+> A handful of genuinely useful adapters aren't in the standard library: `chunk_by` (group consecutive equal items), `unique`, `sorted`, `join` on any iterator, `cartesian_product`, `tuple_windows`, and `itertools::izip!` for zipping three or more. They live in the [itertools](#/ch/itertools) crate, which is pre-loaded in this book's playground. Also worth knowing: **`by_ref()`** lets you consume part of an iterator and then keep using the rest — `let first: Vec<_> = it.by_ref().take(3).collect();` leaves `it` positioned at the fourth element.
+
 ## Quick reference
 
 | Adapter (lazy) | Does | Consumer (eager) | Produces |

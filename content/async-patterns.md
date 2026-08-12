@@ -108,6 +108,129 @@ async fn main() {
 > [!key] "Drop = cancel" is a superpower
 > Because dropping a future cancels it cleanly, async Rust makes timeouts, races, and shutdown trivial to express — no thread to kill, no flag to check everywhere. Just stop awaiting. (The flip side is the cancellation-safety caveat above: make sure a half-finished future can be safely abandoned.)
 
+### Which operations are actually cancellation-safe?
+
+The warning above is only actionable if you know which side of the line an operation falls on. The rule of thumb: an operation is **cancellation-safe** if dropping it mid-flight loses *nothing* — either it completed, or it's as if it never started.
+
+| Cancellation-**safe** (fine in `select!`) | **Not** safe (data can be lost) |
+|---|---|
+| `tokio::time::sleep` / `interval.tick()` | `AsyncReadExt::read_exact` — may have consumed part of the stream |
+| `mpsc::Receiver::recv` | `AsyncWriteExt::write_all` — may have written half the buffer |
+| `broadcast::Receiver::recv` | `AsyncBufReadExt::read_line` — partial line is gone |
+| `watch::Receiver::changed` | any hand-written future holding partial state |
+| `Mutex::lock` (tokio's) | anything documented as "not cancel safe" |
+| `oneshot::Receiver` | |
+
+Tokio documents this per-method — look for the **"Cancel safety"** heading in the API docs; it's there precisely because you can't guess.
+
+When you must call something unsafe in a loop, the fix is to **create the future once, outside the loop, and pin it** — then `select!` polls the *same* future each iteration, so it resumes rather than restarting:
+
+```rust,ignore
+use tokio::io::AsyncBufReadExt;
+
+let mut lines = tokio::io::BufReader::new(socket).lines();
+
+loop {
+    tokio::select! {
+        // ✅ `next_line()` on a BufReader IS cancel-safe: the reader keeps its buffer.
+        maybe_line = lines.next_line() => match maybe_line? {
+            Some(line) => process(line),
+            None => break,           // EOF
+        },
+        _ = shutdown.recv() => break,
+    }
+}
+```
+
+```rust,ignore
+// ❌ The dangerous shape: a NON-cancel-safe future recreated every iteration.
+loop {
+    tokio::select! {
+        // If the shutdown branch wins, this half-read is discarded and the
+        // next iteration starts a fresh read_exact — the bytes are lost.
+        _ = socket.read_exact(&mut buf) => { /* … */ }
+        _ = shutdown.recv() => break,
+    }
+}
+
+// ✅ The fix: build the future once and pin it, so it survives across iterations.
+let read = socket.read_exact(&mut buf);
+tokio::pin!(read);
+loop {
+    tokio::select! {
+        r = &mut read => { /* the SAME future, resumed */ break; }
+        _ = shutdown.recv() => break,
+    }
+}
+```
+
+> [!key] Cancellation safety is about *partial* progress, not about cleanup
+> Dropping a future always runs its destructors — that part is safe by construction. The hazard is narrower: a future that has already *consumed* something irreversible (bytes off a socket, an item from a queue) but hasn't yet handed you the result. Drop it and that work evaporates with no error anywhere.
+>
+> This is why `recv()` is safe (an item is either taken and returned, or not taken at all) while `read_exact` is not (bytes leave the socket buffer before the future completes). When you write your own future, ask: *if I'm dropped right now, has anything observable already happened?* If yes, it isn't cancel-safe, and it needs to be documented as such.
+
+### `biased;` — deterministic branch order
+
+By default `select!` polls its branches in a **random** order each time, which prevents one always-ready branch from starving the others. Add `biased;` to poll strictly top to bottom instead:
+
+```rust
+use tokio::time::{sleep, Duration};
+
+#[tokio::main]
+async fn main() {
+    let mut shutdown = false;
+
+    for _ in 0..3 {
+        tokio::select! {
+            biased;   // check branches in written order, no randomness
+
+            // Highest priority: always noticed first if ready.
+            _ = async {}, if !shutdown => {
+                println!("priority branch ran first");
+                shutdown = true;
+            }
+            _ = sleep(Duration::from_millis(1)) => println!("timer branch"),
+        }
+    }
+}
+```
+
+Two things there worth naming: **`biased;`** buys you predictable priority (useful when a shutdown signal must always win over work), at the cost of possibly starving later branches. And `if !shutdown` is a **branch precondition** — when it's false the branch is skipped entirely, which is how you disable an arm without restructuring the `select!`.
+
+## Structured cancellation with `CancellationToken`
+
+A shutdown channel works for one worker. For a *tree* of tasks — a server with connection handlers, each with sub-tasks — `tokio_util::sync::CancellationToken` is the idiomatic tool: clone it anywhere, cancel once, everyone hears it.
+
+```rust,ignore
+// Cargo.toml: tokio-util = { version = "0.7", features = ["rt"] }
+use tokio_util::sync::CancellationToken;
+
+#[tokio::main]
+async fn main() {
+    let token = CancellationToken::new();
+
+    for id in 0..3 {
+        let token = token.clone();          // cheap; all clones share one flag
+        tokio::spawn(async move {
+            tokio::select! {
+                _ = token.cancelled() => println!("worker {id} stopping"),
+                _ = do_work(id)       => println!("worker {id} finished"),
+            }
+        });
+    }
+
+    tokio::signal::ctrl_c().await.unwrap();
+    token.cancel();                          // every clone's `cancelled()` resolves
+}
+```
+
+`child_token()` creates a token cancelled by its parent but also independently — so a connection handler can cancel *its* sub-tasks without touching the rest of the server. That parent/child structure is what "structured concurrency" means in practice.
+
+> [!tip] Choosing a shutdown mechanism
+> - **One task, one signal** → a `oneshot` channel, or the `mpsc` pattern below.
+> - **Many tasks, one signal** → `CancellationToken`, or a `watch` channel (`watch::Receiver::changed()` is cancel-safe and lets you broadcast state, not just "stop").
+> - **Wait for stragglers to finish** → pair either with a `JoinSet`, or a `mpsc::Sender` held by each task: when the last one drops, the receiver's `recv()` returns `None`, which is your "everyone is done" signal.
+
 ## Graceful shutdown
 
 A common real pattern: a long-running worker that loops until told to stop. Combine `select!` with a shutdown channel so the worker finishes its current step and then exits cleanly:

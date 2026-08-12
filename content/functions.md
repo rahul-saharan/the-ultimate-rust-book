@@ -151,6 +151,72 @@ fn classify(n: i32) -> &'static str {
 > [!tip] Idiomatic Rust prefers the final expression
 > Use an explicit `return` for early exits (guard clauses at the top of a function). For the normal result, let the last expression be the return value — it reads more cleanly and is the style you'll see across the ecosystem.
 
+## Returning several values
+
+Rust functions return exactly one value — but that value can be a **tuple**, which the caller destructures. This is the idiomatic way to hand back two or three related results:
+
+```rust
+/// Returns the minimum, maximum, and sum in one pass.
+fn stats(numbers: &[i32]) -> (i32, i32, i32) {
+    let mut min = numbers[0];
+    let mut max = numbers[0];
+    let mut sum = 0;
+    for &n in numbers {
+        if n < min { min = n; }
+        if n > max { max = n; }
+        sum += n;
+    }
+    (min, max, sum) // one tuple, three values
+}
+
+fn main() {
+    let (low, high, total) = stats(&[3, 9, 1, 7]);
+    println!("min={low} max={high} sum={total}");
+}
+```
+
+Once you're returning more than about three values, or the meaning of each isn't obvious from position, return a [struct](#/ch/structs) instead — `report.max` beats `report.1`.
+
+## Three smaller facts worth knowing
+
+```rust
+fn main() {
+    // 1. Functions can be NESTED — useful for a helper only one function needs.
+    fn outer(n: i32) -> i32 {
+        fn double(x: i32) -> i32 { x * 2 }  // private to `outer`'s scope
+        double(n) + 1
+    }
+    println!("{}", outer(5));
+
+    // 2. A function with no `->` returns the unit type `()`.
+    fn log(msg: &str) { println!("log: {msg}"); }
+    let nothing: () = log("these are equivalent");
+    println!("returned {nothing:?}");
+
+    // 3. Functions are VALUES — you can pass one where a function is expected.
+    fn square(x: i32) -> i32 { x * x }
+    let numbers = [1, 2, 3, 4];
+    let squares: Vec<i32> = numbers.iter().map(|&x| square(x)).collect();
+    println!("{squares:?}");
+
+    // …or store one in a variable, typed as a function pointer:
+    let operation: fn(i32) -> i32 = square;
+    println!("{}", operation(9));
+}
+```
+
+That third point opens a door: functions and [closures](#/ch/closures) are interchangeable in most APIs, and [Function Pointers & Returning Closures](#/ch/advanced-functions) covers the `fn` / `Fn` / `FnMut` / `FnOnce` distinction properly.
+
+> [!note] Functions that never return: the `!` type
+> A function annotated `-> !` promises it will *never* hand control back — it loops forever, exits the process, or panics:
+> ```rust,ignore
+> fn fatal(msg: &str) -> ! {
+>     eprintln!("fatal: {msg}");
+>     std::process::exit(1);
+> }
+> ```
+> `!` is the **never type**, and because it has no values it can stand in for *any* type — which is why `panic!()` and `return` are legal in a branch that's supposed to produce an `i32`. You saw this with `let … else`, whose `else` block must diverge. See [Advanced Types](#/ch/advanced-types).
+
 ## Summary
 
 - Define functions with **`fn`**, name them in `snake_case`, and call them regardless of definition order.

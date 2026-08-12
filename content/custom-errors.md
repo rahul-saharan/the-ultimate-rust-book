@@ -83,7 +83,95 @@ fn main() {
 }
 ```
 
-That's the whole machinery. It works, and it's good to understand — but writing `Display` and `From` by hand for every error gets repetitive. Enter the crates.
+### The `Error` trait and the source chain
+
+Implementing `std::error::Error` is what makes your type a first-class error: it becomes usable as `Box<dyn Error>`, works with `?` across crate boundaries, and — most usefully — can point at the error that **caused** it via `source()`:
+
+```rust
+use std::error::Error;
+use std::fmt;
+
+#[derive(Debug)]
+struct ConfigError {
+    path: String,
+    cause: std::num::ParseIntError, // the underlying failure
+}
+
+impl fmt::Display for ConfigError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "could not load config from {}", self.path)
+    }
+}
+
+impl Error for ConfigError {
+    // Expose the underlying cause so callers can walk the chain.
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        Some(&self.cause)
+    }
+}
+
+fn load() -> Result<i32, ConfigError> {
+    "not-a-number".parse::<i32>().map_err(|cause| ConfigError {
+        path: "app.toml".to_string(),
+        cause,
+    })
+}
+
+fn main() {
+    let err = load().unwrap_err();
+
+    // The top-level message stays short and user-facing…
+    println!("error: {err}");
+
+    // …while the chain preserves the technical detail underneath:
+    let mut current: Option<&dyn Error> = err.source();
+    while let Some(e) = current {
+        println!("  caused by: {e}");
+        current = e.source();
+    }
+}
+```
+
+> [!key] `Display` for users, `Debug` for developers, `source()` for the chain
+> Three distinct jobs, and mixing them up is the most common error-design mistake:
+> - **`Display`** (`{}`) is the sentence a *user* sees. Keep it short, lowercase, and free of "Error:" prefixes — the caller adds context. Don't include the cause; that's what `source()` is for.
+> - **`Debug`** (`{:?}`) is for developers and logs — usually `#[derive(Debug)]` is exactly right.
+> - **`source()`** links to the error beneath yours, so tools can print `failed to load config: invalid digit found in string` without you concatenating strings by hand.
+>
+> Get these right and every error-reporting tool in the ecosystem — `anyhow`'s `{:#}`, `eyre`'s reports, `tracing`'s error fields — produces good output from your type automatically.
+
+That's the whole machinery. It works, and it's good to understand — but writing `Display`, `Error`, and `From` by hand for every variant gets repetitive. Enter the crates.
+
+### The shortcut: `Box<dyn Error>`
+
+Before reaching for a custom type at all, know the escape hatch. Any error implementing `Error` converts into `Box<dyn Error>` automatically, so `?` mixes error types freely with zero setup:
+
+```rust
+use std::error::Error;
+
+fn parse_and_double(text: &str) -> Result<i32, Box<dyn Error>> {
+    let n: i32 = text.trim().parse()?;   // ParseIntError → Box<dyn Error>
+    if n > 1_000 {
+        return Err("number too large".into()); // even &str converts
+    }
+    Ok(n * 2)
+}
+
+fn main() {
+    println!("{:?}", parse_and_double(" 21 "));
+    println!("{:?}", parse_and_double("abc").map_err(|e| e.to_string()));
+    println!("{:?}", parse_and_double("9999").map_err(|e| e.to_string()));
+}
+```
+
+| | `Box<dyn Error>` | A custom enum |
+|---|---|---|
+| Setup | none | `Display` + `Error` + `From` per source |
+| Caller can `match` on the cause? | **no** — the type is erased | **yes** — that's the point |
+| Good for | applications, prototypes, `main` | **libraries**, and anywhere callers must react differently per error |
+
+> [!best] Libraries get an enum; applications get a box
+> If someone else will call your code, give them an **enum** they can `match` on — an opaque `Box<dyn Error>` forces them to string-match your messages, which is nobody's idea of an API. If you're writing the top level of an application, where every error ends up printed and the process exits, `Box<dyn Error>` (or `anyhow`, below) is the pragmatic choice and saves real work. [Error Handling Strategy](#/ch/error-strategy) works through the decision in detail.
 
 ## `thiserror` — custom errors, minus the boilerplate
 

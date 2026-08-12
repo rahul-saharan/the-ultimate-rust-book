@@ -152,12 +152,80 @@ fn main() {
 }
 ```
 
+## `IntoIterator`: the trait behind every `for` loop
+
+`for` isn't built into the language as a special case — it's sugar for one trait. Anything implementing **`IntoIterator`** can be `for`-looped, and the compiler rewrites the loop into `next()` calls:
+
+```rust
+fn main() {
+    let v = vec![1, 2, 3];
+
+    // What you write:
+    for x in &v {
+        print!("{x} ");
+    }
+    println!();
+
+    // What the compiler generates — no magic, just the trait:
+    let mut it = IntoIterator::into_iter(&v);
+    while let Some(x) = it.next() {
+        print!("{x} ");
+    }
+    println!();
+}
+```
+
+This is also the precise explanation for the three forms from earlier — `Vec<T>` has **three** `IntoIterator` impls, and the `&` you write picks one:
+
+| You loop over | Impl used | Item type |
+|---|---|---|
+| `&v` | `impl IntoIterator for &Vec<T>` | `&T` |
+| `&mut v` | `impl IntoIterator for &mut Vec<T>` | `&mut T` |
+| `v` | `impl IntoIterator for Vec<T>` | `T` (consumes `v`) |
+
+> [!key] Implement `IntoIterator` and your type works with `for`
+> If you write a collection, implementing `IntoIterator` (usually all three variants) makes it work with `for` loops, `.collect()` targets, and any function taking `impl IntoIterator` — the same integration `Vec` gets. Note the asymmetry with `Iterator`: an `Iterator` *is* a cursor with a `next()`; an `IntoIterator` is something that can *produce* one. Every `Iterator` is trivially `IntoIterator` (it returns itself), which is why you can `for x in v.iter().map(...)` directly.
+
 ## The payoff: zero-cost
 
 You might worry that all this chaining is slower than a plain loop. It isn't:
 
 > [!performance] As fast as a hand-written loop
-> Because iterators are lazy and heavily inlined, the compiler fuses `iter().filter().map().sum()` into a single loop with no intermediate collections and no overhead — the exact machine code you'd write by hand, often *faster* (the compiler can vectorize it). This is Rust's "zero-cost abstraction" promise in action: **write it the clear, high-level way, get the fast, low-level result.** Prefer iterator chains to manual index loops — they're clearer *and* at least as fast.
+> Because iterators are lazy and heavily inlined, the compiler fuses `iter().filter().map().sum()` into a single loop with no intermediate collections and no overhead — essentially the machine code you'd write by hand. This is Rust's "zero-cost abstraction" promise in action: **write it the clear, high-level way, get the fast, low-level result.** Prefer iterator chains to manual index loops — they're clearer *and* at least as fast.
+
+Don't take that on faith — measure it:
+
+```rust
+use std::time::Instant;
+
+fn main() {
+    let data: Vec<u64> = (0..2_000_000).collect();
+
+    // Manual index loop: every `data[i]` is a bounds-checked access.
+    let t = Instant::now();
+    let mut manual = 0u64;
+    for i in 0..data.len() {
+        if data[i] % 3 == 0 {
+            manual += data[i] * 2;
+        }
+    }
+    let manual_us = t.elapsed().as_micros();
+
+    // Iterator chain: one fused pass, no indexing, no bounds checks.
+    let t = Instant::now();
+    let chained: u64 = data.iter().filter(|&&x| x % 3 == 0).map(|&x| x * 2).sum();
+    let chain_us = t.elapsed().as_micros();
+
+    println!("manual index loop : {manual_us:>7} µs");
+    println!("iterator chain    : {chain_us:>7} µs");
+    println!("identical result  : {}", manual == chained);
+}
+```
+
+> [!note] What those numbers actually show — and the honest caveat
+> In a **debug** build (which is what the Run button uses) the iterator version typically comes out **two to three times faster**. That surprises people, but the reason is simple: `data[i]` performs a bounds check on every access and none of it is inlined, while the iterator walks a pointer and checks nothing.
+>
+> In a **release** build the two converge to the same speed — on my machine 1,762 µs vs 1,781 µs, well inside the run-to-run variance of the *same* binary. That's the real claim: **equivalent, not faster.** You'll see it stated online that iterators beat loops because they vectorize better; sometimes true, often not, and never worth assuming. What you can rely on is that the clearer code costs you nothing. If a specific hot loop matters, benchmark it properly with [criterion](#/ch/benchmarking) rather than trusting either intuition or a one-shot `Instant::now()`.
 
 ## Implementing `Iterator` for your own type
 

@@ -285,6 +285,49 @@ async fn insert_then_read(pool: sqlx::PgPool) {
 > [!key] The rules of non-flaky integration tests
 > **Isolation** — each test gets its own port/DB/temp dir; never share mutable global state. **No sleeps** — don't `sleep(100ms)` and hope; await a real signal (a readiness check, a channel). **Determinism** — inject the clock and any randomness (seed it). **Clean up** — use RAII guards or framework hooks (`#[sqlx::test]`, `tempfile`) so a failed test still tidies up. Flaky tests get ignored, and ignored tests protect nothing. For spinning up real Postgres/Redis in CI, `testcontainers` runs them in throwaway Docker containers.
 
+## Flaky tests: making the nondeterminism go away
+
+A test that passes locally and fails in CI once a week is worse than no test — the team learns to re-run rather than investigate, and real failures get ignored with it. Flakiness nearly always traces to one of four sources, and each has a structural fix:
+
+| Source | Symptom | Fix |
+|---|---|---|
+| **Wall-clock time** | fails at midnight, month boundaries, or under load | inject a clock; never call `Instant::now()` inside logic under test |
+| **Randomness** | fails ~1 run in 50 | seed it: `StdRng::seed_from_u64(42)` |
+| **Ordering** | fails only when tests run in parallel | remove shared state; `HashMap` iteration order is *deliberately* randomised |
+| **Sleeps and timing** | fails on a slow CI box | wait for a condition, don't `sleep(100ms)` and hope |
+
+```rust
+use std::collections::HashMap;
+
+// ❌ Depends on HashMap iteration order, which varies per run BY DESIGN.
+fn first_key_bad(m: &HashMap<&str, i32>) -> Option<String> {
+    m.keys().next().map(|k| k.to_string())
+}
+
+// ✅ Deterministic: state the ordering you actually mean.
+fn first_key_good(m: &HashMap<&str, i32>) -> Option<String> {
+    let mut keys: Vec<_> = m.keys().collect();
+    keys.sort();
+    keys.first().map(|k| k.to_string())
+}
+
+fn main() {
+    let m: HashMap<&str, i32> = [("b", 2), ("a", 1), ("c", 3)].into_iter().collect();
+    println!("sorted first key is always: {:?}", first_key_good(&m));
+    println!("unsorted may vary run to run: {:?}", first_key_bad(&m));
+}
+```
+
+> [!key] Inject the nondeterminism instead of hiding from it
+> The general shape of the fix is the same in every case: take the unpredictable thing as a **parameter** rather than reaching for it globally. A function that calls `Instant::now()` internally can only be tested in real time; one that accepts `now: Instant` can be tested at any instant you like, including the leap second that broke production. The same applies to random seeds, environment variables, and the filesystem — this is the "design for testability" principle from the top of the chapter, applied to time.
+>
+> For the ordering case specifically: `HashMap`'s iteration order is randomised *on purpose* (it's part of the HashDoS defence), so a test that depends on it isn't unlucky — it's wrong. Use `BTreeMap` when you want deterministic order, or sort explicitly.
+
+> [!warning] Don't paper over flakes with retries or `--test-threads=1`
+> Both are tempting and both hide the signal. A retry turns "this fails 5% of the time" into "this fails silently 0.25% of the time" — the bug is still there, and it's now in production too, where nothing retries it. Forcing single-threaded tests masks genuine shared-state bugs that would also bite under real concurrent load.
+>
+> Use `--test-threads=1` to *diagnose* (if it fixes things, you have shared state), then fix the state. Reserve `#[ignore]` for tests that are legitimately slow or need external services, and run them separately in CI with `cargo test -- --ignored`.
+
 ## Measuring what you test: coverage
 
 Coverage shows which lines your tests actually exercised — a guide to gaps (not a target to game):

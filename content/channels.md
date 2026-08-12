@@ -122,6 +122,69 @@ fn main() {
 }
 ```
 
+## Iterating a receiver, and when it stops
+
+A `Receiver` is an iterator, which makes the consumer loop pleasantly short — `for msg in rx` yields messages until the channel is **closed and drained**:
+
+```rust
+use std::sync::mpsc;
+use std::thread;
+
+fn main() {
+    let (tx, rx) = mpsc::channel();
+
+    for id in 0..3 {
+        let tx = tx.clone();
+        thread::spawn(move || {
+            tx.send(format!("worker {id} finished")).unwrap();
+        }); // this clone of tx is dropped here, as the thread ends
+    }
+
+    // Drop the ORIGINAL sender — otherwise it stays alive in main
+    // and the loop below would wait forever for a message that never comes.
+    drop(tx);
+
+    for msg in rx {
+        println!("{msg}");
+    }
+    println!("channel closed — all senders are gone");
+}
+```
+
+> [!mistake] The hang everyone hits once: forgetting to drop the last sender
+> `for msg in rx` ends only when **every** `Sender` has been dropped. If `main` still holds the original `tx` after cloning it for the workers, the channel never closes, and the loop blocks forever waiting on a sender that will never send. There's no error and no CPU use — the program just stops, which makes it a confusing first encounter.
+>
+> Three ways to avoid it: **`drop(tx)`** explicitly once you've handed out the clones (as above); scope the original so it falls out of scope naturally; or skip the loop and call `rx.recv()` exactly as many times as you expect messages. The same rule explains `recv()` returning `Err(RecvError)` — that's not a failure, it's the channel telling you it's closed and empty.
+
+<figure class="diagram">
+<svg viewBox="0 0 670 190" role="img" aria-label="Three cloned senders and one original sender all feed one receiver. The receiver loop ends only after every sender including the original has been dropped; if the original is retained the loop blocks forever.">
+  <style>
+    .cn-h { font: 700 11.5px var(--font-sans); }
+    .cn-m { font: 600 10.5px var(--font-mono); fill: var(--text); }
+    .cn-c { font: 10px var(--font-sans); fill: var(--text-mute); }
+    .cn-tx { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 1.3; }
+    .cn-keep { fill: var(--red-soft); stroke: var(--red); stroke-width: 1.6; }
+    .cn-rx { fill: var(--green-soft); stroke: var(--green); stroke-width: 1.5; }
+  </style>
+  <rect x="12" y="24" width="150" height="22" rx="4" class="cn-tx"/><text x="22" y="40" class="cn-m">tx.clone() → worker 0</text>
+  <rect x="12" y="52" width="150" height="22" rx="4" class="cn-tx"/><text x="22" y="68" class="cn-m">tx.clone() → worker 1</text>
+  <rect x="12" y="80" width="150" height="22" rx="4" class="cn-tx"/><text x="22" y="96" class="cn-m">tx.clone() → worker 2</text>
+  <rect x="12" y="112" width="150" height="22" rx="4" class="cn-keep"/><text x="22" y="128" class="cn-m">tx (original, in main)</text>
+  <path d="M164 35 L286 68" stroke="var(--blue)" stroke-width="1.3"/>
+  <path d="M164 63 L286 70" stroke="var(--blue)" stroke-width="1.3"/>
+  <path d="M164 91 L286 74" stroke="var(--blue)" stroke-width="1.3"/>
+  <path d="M164 123 L286 80" stroke="var(--red)" stroke-width="1.6" stroke-dasharray="4 3"/>
+  <rect x="290" y="58" width="120" height="30" rx="6" class="cn-rx"/><text x="300" y="78" class="cn-m">rx</text>
+  <text x="424" y="52" class="cn-c">Workers finish → their clones drop.</text>
+  <text x="424" y="70" class="cn-c">But the original tx is still alive,</text>
+  <text x="424" y="88" class="cn-c">so the channel stays OPEN…</text>
+  <text x="424" y="112" class="cn-c" fill="var(--red)">…and `for msg in rx` blocks forever.</text>
+  <text x="12" y="164" class="cn-c">The receiver closes when the sender COUNT reaches zero — every clone, plus the original.</text>
+  <text x="12" y="180" class="cn-c">`drop(tx)` after cloning is the fix, and it is why you see it in almost every mpsc example.</text>
+</svg>
+<figcaption>The channel closes only when the <b>last</b> sender is dropped — including the original you cloned from.</figcaption>
+</figure>
+
 ## Bounded channels for backpressure
 
 `mpsc::channel()` is *unbounded* — senders never wait, but a fast producer can pile up unbounded memory. `mpsc::sync_channel(n)` is **bounded**: once `n` messages are buffered, `send` **blocks** until the receiver catches up. This is **backpressure** — it stops a fast producer from overwhelming a slow consumer.

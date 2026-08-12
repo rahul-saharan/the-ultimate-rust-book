@@ -152,6 +152,72 @@ fn main() {
 }
 ```
 
+## Why you never write `(&instance).method()`
+
+In C you'd need `ptr->field` for a pointer and `obj.field` for a value. Rust has one syntax, because the compiler inserts the `&`, `&mut`, or `*` for you — this is **automatic referencing and dereferencing**:
+
+```rust
+#[derive(Debug)]
+struct Rect { w: f64, h: f64 }
+
+impl Rect {
+    fn area(&self) -> f64 { self.w * self.h }
+    fn scale(&mut self, k: f64) { self.w *= k; self.h *= k; }
+}
+
+fn main() {
+    let mut r = Rect { w: 2.0, h: 3.0 };
+
+    // All of these are the same call. Rust adds the borrow automatically:
+    println!("{}", r.area());              // what you write
+    println!("{}", (&r).area());           // what it means
+    println!("{}", Rect::area(&r));        // fully explicit form
+
+    r.scale(2.0);                          // auto &mut, because scale needs it
+    println!("{r:?}");
+
+    // It also works through references and smart pointers, dereferencing
+    // as many times as needed to find the method:
+    let boxed = Box::new(Rect { w: 1.0, h: 4.0 });
+    println!("{}", boxed.area());          // Box<Rect> → Rect, then &Rect
+}
+```
+
+> [!key] The receiver adapts; the method decides
+> When you write `r.area()`, the compiler looks at `area`'s declared receiver (`&self`) and supplies exactly that — borrowing, mutably borrowing, or moving as required. This is why the same `r.method()` syntax works for a value, a reference, a `Box`, or an `Rc`. It's also why a `&mut self` method needs the variable itself to be `mut`: the compiler is silently taking `&mut r`, and it can only do that if `r` is declared mutable. When you see *"cannot borrow `r` as mutable"* on a method call, the missing `mut` is on the `let`.
+
+## Multiple `impl` blocks and `Self`
+
+A type can have as many `impl` blocks as you like — the compiler merges them. That's useful for grouping related methods, or for separating those that need extra bounds:
+
+```rust
+struct Stack<T> { items: Vec<T> }
+
+// Available for any T:
+impl<T> Stack<T> {
+    fn new() -> Self {              // `Self` = Stack<T>, saves repeating it
+        Self { items: Vec::new() }
+    }
+    fn push(&mut self, item: T) { self.items.push(item); }
+    fn len(&self) -> usize { self.items.len() }
+}
+
+// A second block, only for printable T:
+impl<T: std::fmt::Debug> Stack<T> {
+    fn dump(&self) { println!("{:?}", self.items); }
+}
+
+fn main() {
+    let mut s = Stack::new();
+    s.push(1);
+    s.push(2);
+    println!("len {}", s.len());
+    s.dump();
+}
+```
+
+**`Self`** (capital S) is an alias for the type being implemented. Use it in return types and constructors — `fn new() -> Self` keeps working if you rename or add generics to the type.
+
 ## Method chaining
 
 Methods that return `Self` (or `&mut Self`) let you **chain** calls fluently — each call flows into the next. This is the basis of the popular *builder pattern*:

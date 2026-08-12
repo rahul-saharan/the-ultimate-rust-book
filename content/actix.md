@@ -7,6 +7,21 @@ This chapter matches the depth of the axum one so you can compare them directly.
 > [!note] Servers don't run in the in-book playground
 > An Actix server binds a socket and runs forever, so "▶ Run" can't execute these examples — they're marked `ignore`, to be run **locally** with `cargo run`. One block in the capstone (the pure-Rust analytics core) *is* runnable, so you can execute the real aggregation logic in the book.
 
+## Five ideas every Rust web framework shares
+
+Every Rust web framework — Actix Web, [axum](#/ch/axum), and [Rocket](#/ch/rocket) — rebuilds the same five ideas, just with different names. If you've read the [axum chapter](#/ch/axum) first, this table is your dictionary; if you're starting here, it's your map for the rest of the ecosystem:
+
+| Concept | The problem it solves | Actix Web's name |
+|---|---|---|
+| **Handler** | turn a plain function into something that answers a request | any `async fn` |
+| **Router** | map an incoming method + path to a handler | `App` (routes) served by `HttpServer` |
+| **Extractor** | pull typed data (path, query, JSON, state, …) out of a request | types implementing `FromRequest` |
+| **Response trait** | let a handler return *anything* and still produce an HTTP response | `Responder` (failures: `ResponseError`) |
+| **Middleware** | wrap cross-cutting behavior (logging, auth, CORS) around handlers | a `Transform`, applied with `.wrap(...)` |
+
+> [!tip] Same five ideas, different spelling
+> axum calls the response trait **`IntoResponse`** and middleware a **`tower::Layer`**; [Rocket](#/ch/rocket) calls extractors **request guards** and middleware a **`Fairing`**. Once you've internalized "a function handles a route, typed data comes from the request, the return value becomes the response," every Rust web framework you meet after these three is a variation on the same five-part shape.
+
 > [!key] Actix Web vs. axum — how to choose
 > Both are excellent, tokio-based, and extremely fast. **axum** is minimal, `tower`-native, and composes with the wider tower ecosystem (used by tonic, hyper, reqwest). **Actix Web** is more batteries-included (built-in logger, sessions, static files, its own powerful extractor/middleware system) and has a longer track record at scale. Pick axum for tower interop and a smaller surface; pick Actix Web for a rich built-in toolkit and its worker model. The *concepts* — handlers, extractors, responders, middleware — map almost one-to-one.
 
@@ -151,6 +166,40 @@ The built-in extractor toolbox:
 
 > [!note] Extractors are `FromRequest` implementers
 > Every extractor implements the **`FromRequest`** trait, which runs *before* your handler to build that argument from the request. You can implement `FromRequest` yourself for a custom extractor — the standard way to model authentication (pull and validate a token), a request ID, or a tenant — so your handler just declares `auth: Auth` and gets a validated value.
+
+### Debugging handler and extractor errors
+
+The most common Actix compile error is some variant of "the trait `Handler<_, _, _>` is not implemented for..." — it shows up when a handler's return type doesn't implement `Responder`, or an argument doesn't implement `FromRequest`. Unlike axum, Actix has no `#[debug_handler]` macro, but the same divide-and-conquer trick always works: temporarily change the return type to a concrete `HttpResponse` and strip the arguments down to one at a time until the error disappears — whichever piece you removed last was the culprit.
+
+```rust,ignore
+// Doesn't compile, and the error is long and generic:
+// async fn broken(a: web::Json<A>, b: web::Path<u32>) -> impl Responder { ... }
+
+// Step 1: pin the return type down.
+async fn broken(a: web::Json<A>, b: web::Path<u32>) -> HttpResponse { todo!() }
+// Step 2: if that alone fixes it, the problem was your Responder impl (or lack of one).
+// If not, remove arguments one at a time — the one whose removal fixes it doesn't implement FromRequest.
+```
+
+### Customizing extractor error responses
+
+By default, a failed `web::Json`/`web::Query`/`web::Path` extraction produces Actix's built-in `400 Bad Request` with a plain-text description. For a JSON API you usually want that in your app's own error shape — register an **`error_handler`** on the extractor's config to rewrite it:
+
+```rust,ignore
+use actix_web::{error::InternalError, web, App, HttpResponse};
+use serde_json::json;
+
+let json_cfg = web::JsonConfig::default().error_handler(|err, _req| {
+    // Wrap the default rejection in the app's own { "error": "..." } shape.
+    let response = HttpResponse::BadRequest().json(json!({ "error": err.to_string() }));
+    InternalError::from_response(err, response).into()
+});
+
+// App::new().app_data(json_cfg)...
+```
+
+> [!note] Most apps don't need this
+> The default rejection bodies are fine for internal services and early APIs. Reach for a custom `error_handler` only once a *public* API needs every failure mode — including malformed request bodies, not just handler-level errors — in one consistent shape, matching the `AppError`/`ResponseError` pattern from [Error handling](#/ch/actix) below.
 
 ## Request bodies — JSON, forms, files, raw & streams
 
@@ -954,6 +1003,15 @@ curl -X POST -H "x-api-key: dev-secret" -H "content-type: application/json" \
 | Built-in / community middleware | `Logger`, `Cors` |
 | Automatic graceful shutdown | `.run().await` |
 
+## Resources
+
+> [!best] Where to go deeper
+> - **[docs.rs/actix-web](https://docs.rs/actix-web)** — the authoritative, always-current API reference.
+> - **[actix.rs](https://actix.rs)** — the official guide/book, with a deeper walkthrough of sessions, WebSockets, and databases than fits in one chapter.
+> - **[github.com/actix/examples](https://github.com/actix/examples)** — dozens of runnable example projects (auth, WebSockets, Diesel/SQLx, TLS, HTTP/2, and more) maintained alongside the framework.
+> - **[github.com/actix/actix-web/discussions](https://github.com/actix/actix-web/discussions)** — Q&A with maintainers and the community.
+> - **[github.com/actix/actix-extras](https://github.com/actix/actix-extras)** — the umbrella repo for `actix-cors`, `actix-session`, `actix-identity`, and the other first-party crates mentioned in this chapter.
+
 ## Summary
 
 - **Actix Web** is a tokio-based framework where **handlers are plain async functions** returning a `Responder`; an **`App`** holds routes/state/middleware and an **`HttpServer`** serves it.
@@ -971,4 +1029,4 @@ curl -X POST -H "x-api-key: dev-secret" -H "content-type: application/json" \
 > 4. Write an `#[actix_web::test]` asserting `/api/analytics/overview` is `401` without the key and `200` with it.
 > 5. Port this same project to [axum](#/ch/axum) (or compare with the one you built there) — notice how the handlers, extractors, and error type map almost one-to-one.
 
-You've now seen both leading Rust web frameworks. When your services need to talk to *each other* faster, with a strict typed contract and streaming, they often use gRPC instead — the next chapter covers it with **tonic**.
+You've now seen both leading Rust web frameworks. There's a third worth knowing — **Rocket** — which trades some of axum's and Actix's raw configurability for the most ergonomic, "batteries-included" developer experience of the three; the next chapter covers it at a lighter depth. After that, when your services need to talk to *each other* faster, with a strict typed contract and streaming, they often use gRPC instead — the chapter after covers it with **tonic**.

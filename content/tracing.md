@@ -6,7 +6,7 @@ When your program runs in production, you can't attach a debugger — you rely o
 
 tracing's **events** are log messages, emitted at a severity **level**. Unlike plain `println!`, they carry structured key–value fields, not just text:
 
-```rust,ignore
+```rust
 // Cargo.toml:
 //   tracing = "0.1"
 //   tracing-subscriber = "0.3"
@@ -14,8 +14,12 @@ tracing's **events** are log messages, emitted at a severity **level**. Unlike p
 use tracing::{info, warn, error, debug};
 
 fn main() {
-    // Install a subscriber that prints events (do this once, at startup):
-    tracing_subscriber::fmt::init();
+    // Install a subscriber that prints events (do this once, at startup).
+    // `with_max_level` shows DEBUG too; the default would hide it.
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .with_target(false)   // drop the module path, for a tidier demo
+        .init();
 
     let user = "ferris";
     let attempts = 3;
@@ -24,8 +28,25 @@ fn main() {
     debug!(user, attempts, "processing login");        // structured fields!
     warn!(user, "unusual activity detected");
     error!(code = 500, "request failed");
+
+    // Fields can be renamed, computed, or captured with `%` (Display) / `?` (Debug):
+    let ids = vec![1, 2, 3];
+    info!(count = ids.len(), ?ids, "batch ready");
 }
 ```
+
+Run it and each line arrives with a timestamp, a level, the fields, and the message:
+
+```text
+2026-08-13T10:14:22.031Z  INFO application started
+2026-08-13T10:14:22.031Z DEBUG processing login user="ferris" attempts=3
+2026-08-13T10:14:22.031Z  WARN unusual activity detected user="ferris"
+2026-08-13T10:14:22.031Z ERROR request failed code=500
+2026-08-13T10:14:22.031Z  INFO batch ready count=3 ids=[1, 2, 3]
+```
+
+> [!tip] `%` and `?` are the two sigils to remember
+> A field value must implement `Value`, which covers primitives and strings. For anything else, prefix it: **`%thing`** records it via `Display`, **`?thing`** via `Debug`. So `error!(%err, "request failed")` logs the human-readable error, while `info!(?config, "loaded")` dumps the struct. Without a sigil you'd get a type error — this is the single most common first stumble with `tracing`.
 
 Note `debug!(user, attempts, "…")` — `user` and `attempts` are attached as **fields**, not smushed into the message string. A subscriber can render them as text *or* as JSON for machine processing.
 
@@ -66,28 +87,48 @@ fn main() {
 
 Here's what sets tracing apart from old-style loggers. A **span** represents a *period of time* with context — "handling this request", "running this query". Events that happen *inside* a span are automatically tagged with the span's context, so you can follow one request's whole journey even across `await` points and threads:
 
-```rust,ignore
-use tracing::{info, info_span, instrument};
+```rust
+use tracing::{info, instrument};
 
 // The #[instrument] attribute wraps a function in a span automatically,
 // recording its arguments as fields:
 #[instrument]
 async fn handle_request(user_id: u64) {
     info!("starting to handle request"); // tagged with user_id automatically
-    fetch_data(user_id).await;
+    fetch_data(user_id, "s3cr3t42").await;
     info!("request complete");
 }
 
-#[instrument]
-async fn fetch_data(user_id: u64) {
-    info!("querying database"); // ALSO tagged with user_id, from the parent span
+// `skip` keeps a noisy or sensitive argument out of the log.
+#[instrument(skip(token))]
+async fn fetch_data(user_id: u64, token: &str) {
+    info!(len = token.len(), "querying database"); // still tagged with user_id
 }
 
-fn main() {
-    tracing_subscriber::fmt::init();
-    // Every event inside handle_request carries user_id — even in fetch_data.
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt()
+        .with_target(false)
+        .init();
+
+    handle_request(42).await;
 }
+
+// The span name and its fields prefix every event inside it:
+//   INFO handle_request{user_id=42}: starting to handle request
+//   INFO handle_request{user_id=42}:fetch_data{user_id=42}: querying database len=8
+//   INFO handle_request{user_id=42}: request complete
 ```
+
+Run it and look at the prefix on each line: `handle_request{user_id=42}:fetch_data{user_id=42}:`. That nesting is the whole point — the innermost event carries the full chain of context it happened inside, with no manual plumbing.
+
+> [!warning] `#[instrument]` records *every* argument by default
+> That includes passwords, tokens, and whole request bodies, which then land in your logs. Use **`skip`** (as above) or `skip_all` and re-add just what you need:
+> ```rust,ignore
+> #[instrument(skip_all, fields(user_id = %req.user_id))]
+> async fn handle(req: Request) { /* … */ }
+> ```
+> Also note that arguments must implement `Debug` for `#[instrument]` to record them — add `skip` for anything that doesn't, or the function won't compile.
 
 <figure class="diagram">
 <svg viewBox="0 0 640 150" role="img" aria-label="A span provides context that automatically tags all events within it, even across async calls">

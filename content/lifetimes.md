@@ -89,6 +89,44 @@ If lifetimes were always required, Rust would be exhausting. They're not, becaus
 >
 > You only annotate by hand when these rules leave the output's lifetime ambiguous — like `longest`, with two input references and no `self`. That's genuinely rare in day-to-day code.
 
+## Decoding the three lifetime errors
+
+Almost every lifetime error you'll meet is one of three, and each has a standard fix:
+
+| Error | The compiler is saying | Usual fix |
+|---|---|---|
+| **E0106** `missing lifetime specifier` | "this return reference could come from several places — which?" | annotate (`<'a>`), or return an owned value |
+| **E0597** `borrowed value does not live long enough` | "the referent dies before the reference does" | move the owner to an outer scope, or return owned data |
+| **E0515** `cannot return reference to local variable` | "you're returning a pointer to this function's own stack frame" | return the value itself, not a reference to it |
+
+```rust,ignore
+// E0106 — two inputs, so the compiler can't guess which one the output borrows:
+fn longest(a: &str, b: &str) -> &str { if a.len() > b.len() { a } else { b } }
+//                               ^ expected named lifetime parameter
+// fix: fn longest<'a>(a: &'a str, b: &'a str) -> &'a str
+
+// E0597 — `inner` dies at the closing brace, but `r` is used after it:
+let r;
+{
+    let inner = String::from("temporary");
+    r = &inner;
+}
+// println!("{r}");   // ❌ `inner` does not live long enough
+// fix: declare `inner` in the outer scope, or store an owned String in `r`
+
+// E0515 — the classic "return a reference to a local":
+fn broken() -> &String {
+    let s = String::from("hi");
+    &s          // ❌ `s` is dropped when the function returns
+}
+// fix: `fn works() -> String { String::from("hi") }` — return ownership
+```
+
+> [!key] Every lifetime error is the same question: *does the data outlive the reference?*
+> The messages differ, but they all reduce to that one check. When you're stuck, don't start sprinkling `'a` annotations — they don't extend anything. **A lifetime annotation is a description, not an instruction.** Writing `<'a>` doesn't make data live longer; it only *tells the compiler about a relationship that already exists*, so it can verify it. If the data genuinely dies too early, no annotation can save you — you must either make the owner live longer, or hand back owned data instead of a borrow.
+>
+> That's why "return a `String` instead of a `&str`" resolves so many of these: it sidesteps the question entirely by giving the caller something that doesn't depend on anyone else's lifetime.
+
 ## Lifetimes in structs
 
 If a struct holds a **reference** (rather than owned data), you must annotate its lifetime — this states "an instance of this struct can't outlive the data it borrows":

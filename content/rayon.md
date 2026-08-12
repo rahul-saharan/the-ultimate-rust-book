@@ -125,8 +125,71 @@ fn sum_slice(s: &[i64]) -> i64 {
 <figcaption>Rayon automatically divides work across a <b>work-stealing</b> thread pool sized to your CPU.</figcaption>
 </figure>
 
+## Measure it: the one-word change, timed
+
+Rayon's whole pitch is that `iter()` → `par_iter()` is the entire diff. Here it is with numbers, including the case where parallelism **loses**:
+
+```rust
+use rayon::prelude::*;
+use std::time::Instant;
+
+/// Deliberately expensive per-item work.
+fn heavy(n: u64) -> u64 {
+    let mut acc = n;
+    for _ in 0..300 {
+        acc = acc.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+    }
+    acc >> 33
+}
+
+fn main() {
+    println!("cores available: {}\n", rayon::current_num_threads());
+
+    // ── Real work: parallelism wins ──
+    let data: Vec<u64> = (0..200_000).collect();
+
+    let t = Instant::now();
+    let seq: u64 = data.iter().map(|&n| heavy(n)).sum();
+    let seq_ms = t.elapsed().as_millis();
+
+    let t = Instant::now();
+    let par: u64 = data.par_iter().map(|&n| heavy(n)).sum();
+    let par_ms = t.elapsed().as_millis();
+
+    println!("HEAVY work over 200k items");
+    println!("  sequential : {seq_ms:>5} ms");
+    println!("  parallel   : {par_ms:>5} ms");
+    println!("  identical results: {}", seq == par);
+
+    // ── Trivial work: the overhead dominates ──
+    let small: Vec<u64> = (0..2_000).collect();
+
+    let t = Instant::now();
+    let s2: u64 = small.iter().map(|&n| n + 1).sum();
+    let seq_us = t.elapsed().as_micros();
+
+    let t = Instant::now();
+    let p2: u64 = small.par_iter().map(|&n| n + 1).sum();
+    let par_us = t.elapsed().as_micros();
+
+    println!("\nTRIVIAL work over 2k items");
+    println!("  sequential : {seq_us:>5} µs");
+    println!("  parallel   : {par_us:>5} µs   ← often SLOWER");
+    println!("  identical results: {}", s2 == p2);
+}
+```
+
 > [!performance] Parallelism isn't free — use it for real work
-> Splitting work and coordinating threads has overhead. Rayon pays off when the per-item work is substantial or the collection is large; for a tiny list or trivial operation, `par_iter` can be *slower* than a plain loop. Rule of thumb: parallelize CPU-heavy work over big datasets (image processing, simulations, parsing millions of records), and always **measure** (see [benchmarking](#/ch/benchmarking)) — Rayon makes trying it a one-word change, so measuring the difference is easy.
+> The second half of that program is the important one. Splitting a collection, dispatching to the pool, and joining the results costs real time; when the per-item work is a single addition, that overhead is *all* you measure, and `par_iter` loses to a plain loop — sometimes by a lot.
+>
+> Rayon pays off when **items × per-item cost** is large: image processing, simulations, hashing, parsing millions of records. It's a poor fit for short collections, trivial operations, or anything I/O-bound (that's [async](#/ch/async-intro), not Rayon — parallel `.await` doesn't exist here).
+>
+> Because the change is one word, **measuring is nearly free** — so measure rather than assume, and remember the debug/release gap: run these comparisons with `--release`, since debug builds distort both sides. See [Benchmarking & Profiling](#/ch/benchmarking) for doing it properly with criterion.
+
+> [!key] Why the results are always identical
+> Notice both halves assert `seq == par`. That isn't luck — Rayon's `sum`, `reduce`, and `collect` are **deterministic**: `collect` preserves the original order regardless of which thread computed which element, and reductions are applied in a fixed tree order. So switching to `par_iter` cannot silently reorder your output.
+>
+> The exception is anything genuinely order-dependent: `for_each` runs in arbitrary order, and `reduce` with a **non-associative** operation (floating-point addition, notably) can give slightly different results from the sequential version because the grouping changes. If exact float reproducibility matters, keep that reduction sequential.
 
 > [!best] Rayon vs. threads vs. async
 > - **Rayon** → *data parallelism*: the same CPU-bound computation over many items ("use all my cores for this loop").

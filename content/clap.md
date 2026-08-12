@@ -121,6 +121,130 @@ $ todo done 3
 $ todo list
 ```
 
+## Run it here: `parse_from` instead of the real args
+
+`Cli::parse()` reads `std::env::args()`, which you can't control in a book. **`parse_from`** takes an argv-like iterator instead — so you can exercise a real CLI definition with synthetic input, and it's also exactly how you unit-test one:
+
+```rust
+use clap::{Parser, Subcommand};
+
+#[derive(Parser, Debug)]
+#[command(name = "todo", version = "1.0", about = "A tiny task tracker")]
+struct Cli {
+    /// Show extra detail
+    #[arg(short, long)]
+    verbose: bool,
+
+    /// How many items to show
+    #[arg(short = 'n', long, default_value_t = 10)]
+    limit: u32,
+
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand, Debug)]
+enum Commands {
+    /// Add a new task
+    Add { text: String },
+    /// Mark a task done
+    Done { id: u32 },
+    /// List all tasks
+    List,
+}
+
+fn main() {
+    // Note argv[0] is the program name — clap skips it, just like the real thing.
+    let cli = Cli::parse_from(["todo", "--verbose", "-n", "3", "add", "write the docs"]);
+    println!("{cli:?}\n");
+
+    match &cli.command {
+        Commands::Add { text } => println!("adding {text:?} (verbose={})", cli.verbose),
+        Commands::Done { id } => println!("completing {id}"),
+        Commands::List => println!("listing up to {}", cli.limit),
+    }
+
+    // Defaults apply when a flag is absent:
+    let plain = Cli::parse_from(["todo", "list"]);
+    println!("\ndefaults → verbose={} limit={}", plain.verbose, plain.limit);
+}
+```
+
+### Errors are values too — `try_parse_from`
+
+`parse_from` exits the process on bad input, which is right for `main` and useless in a test. **`try_parse_from`** hands you a `Result` instead, so you can inspect exactly what clap rejected:
+
+```rust
+use clap::Parser;
+
+#[derive(Parser, Debug)]
+struct Cli {
+    /// Port to bind (must fit in a u16)
+    #[arg(short, long)]
+    port: u16,
+}
+
+fn main() {
+    // Valid:
+    println!("{:?}\n", Cli::try_parse_from(["app", "--port", "8080"]).map(|c| c.port));
+
+    // Out of range for u16 — clap validates the TYPE for you:
+    match Cli::try_parse_from(["app", "--port", "99999"]) {
+        Ok(c) => println!("parsed {}", c.port),
+        Err(e) => println!("rejected: {}", e.kind()),
+    }
+
+    // Missing a required option:
+    match Cli::try_parse_from(["app"]) {
+        Ok(c) => println!("parsed {}", c.port),
+        Err(e) => println!("rejected: {}", e.kind()),
+    }
+
+    // Unknown flag — clap even suggests corrections in its full message:
+    match Cli::try_parse_from(["app", "--prot", "80"]) {
+        Ok(_) => println!("parsed"),
+        Err(e) => println!("rejected: {}", e.kind()),
+    }
+}
+```
+
+> [!key] Your field types *are* your validation
+> This is the part that makes clap feel different from argument parsers in other languages. Declaring `port: u16` doesn't just convert the string — it **rejects** `99999` before your code runs, with a proper error message and exit code 2. `Option<T>` means optional, a bare `T` means required, `Vec<T>` means repeatable, `bool` means a flag. The type system you already know *is* the specification.
+>
+> Push that further with `value_parser`: `#[arg(value_parser = clap::value_parser!(u16).range(1024..))]` enforces a range, and `#[arg(value_enum)]` on an enum restricts the input to its variants — both with generated help text listing the valid values. Every rule you encode this way is one your `main` never has to check.
+
+### Restricting and relating arguments
+
+Real CLIs have rules beyond individual types — mutually exclusive flags, options that require each other:
+
+```rust,ignore
+#[derive(Parser)]
+struct Cli {
+    /// Cannot be used together with --quiet
+    #[arg(long, conflicts_with = "quiet")]
+    verbose: bool,
+
+    #[arg(long)]
+    quiet: bool,
+
+    /// Only meaningful when --output is given
+    #[arg(long, requires = "output")]
+    overwrite: bool,
+
+    #[arg(long)]
+    output: Option<String>,
+
+    /// Restrict to a fixed set, with help text listing the options
+    #[arg(long, value_enum, default_value_t = Format::Text)]
+    format: Format,
+}
+
+#[derive(clap::ValueEnum, Clone, Debug)]
+enum Format { Text, Json, Csv }
+```
+
+`conflicts_with`, `requires`, and `ArgGroup` let clap enforce these before your code runs — again turning a runtime `if` into a parse-time error with a clear message.
+
 > [!best] Use the derive API and let clap do the work
 > clap has a lower-level "builder" API, but the **derive API** (shown here) is what you want almost always — it's declarative, keeps your CLI definition next to your data, and is far less code. Let clap own the tedious parts: `--help`/`--version`, "did you mean…?" suggestions, required-argument errors, and value validation. Your `main` should mostly just `parse()` and `match`.
 

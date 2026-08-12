@@ -142,6 +142,51 @@ fn main() {
 > [!key] You rarely name these traits yourself
 > When you pass a closure to `map`, `filter`, `sort_by`, or `thread::spawn`, *those* functions specify the right bound (`Fn`, `FnMut`, or `FnOnce`); the compiler figures out which trait your closure satisfies and checks it fits. You mostly need to *understand* the traits to read signatures and decode the occasional error — you seldom write the bounds unless you're building your own higher-order function.
 
+## A closure is a struct the compiler writes for you
+
+Closures feel magical until you see what they actually are: an anonymous **struct** holding the captured variables, with the body compiled as a method. That single fact explains their size, their type, and their traits:
+
+```rust
+use std::mem::size_of_val;
+
+fn main() {
+    let captures_nothing = || 42;
+
+    let x: i64 = 7;
+    let captures_one = move || x * 2;
+
+    let a: i64 = 1;
+    let b: [u8; 32] = [0; 32];
+    let captures_two = move || (a, b.len());
+
+    println!("captures nothing : {} bytes", size_of_val(&captures_nothing));
+    println!("captures one i64 : {} bytes", size_of_val(&captures_one));
+    println!("captures i64+[32]: {} bytes", size_of_val(&captures_two));
+
+    println!("\n{} {} {:?}", captures_nothing(), captures_one(), captures_two());
+}
+```
+
+A closure capturing nothing is **zero bytes** — it holds no data, so there's nothing to store. Each captured value adds its own size. This is why passing a closure to `map` costs nothing: there's no allocation and no indirection, just a struct that gets inlined away.
+
+> [!key] Every closure has its own unique, unnameable type
+> Two closures with identical signatures are still **different types** — the compiler generates a fresh anonymous struct for each one. That has three practical consequences:
+> - You can't write the type down. `let f: ??? = |x| x + 1;` has no spelling, which is why closures are always used behind a generic bound (`impl Fn(i32) -> i32`) or a trait object (`Box<dyn Fn(i32) -> i32>`).
+> - Two closures can't share a variable's type: `let mut f = |x| x + 1; f = |x| x * 2;` fails, because the second closure is a different type.
+> - Returning different closures from different branches needs `Box<dyn Fn…>` — the same reason `impl Trait` returns one concrete type, as in [Traits](#/ch/traits).
+>
+> A **function pointer** (`fn(i32) -> i32`) *is* nameable, and any closure that captures nothing can coerce to one — which is the bridge between the two worlds.
+
+> [!note] Closures capture individual fields, not whole structs (edition 2021+)
+> A subtle improvement worth knowing. In edition 2018, a closure touching `config.host` captured **all** of `config`; if another thread needed `config.port`, you were stuck. Since **edition 2021**, closures capture *disjoint fields* individually:
+> ```rust,ignore
+> let mut config = Config { host: String::new(), port: 0 };
+> let mut set_host = || config.host.push_str("localhost"); // borrows only .host
+> let port = config.port;   // ✅ fine in edition 2021 — .port isn't borrowed
+> set_host();
+> ```
+> On edition 2018 that same code fails to borrow `config.port`. If you're reading older material describing this as impossible, check which edition it targets — see [Editions](#/ch/editions).
+
 ## Closures with iterators
 
 The place you'll use closures most is with iterators, transforming collections declaratively:

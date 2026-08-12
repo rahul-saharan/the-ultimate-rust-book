@@ -259,16 +259,8 @@ fn main() {
 }
 ```
 
-> [!warning] Overflow is a bug Rust helps you catch
-> In debug builds, `250u8 + 10` **panics** (overflow); in release it wraps silently. Don't rely on either — say what you mean with the checked family: `checked_add` (→ `Option`), `wrapping_add` (wraps on purpose), `saturating_add` (clamps to the max), `overflowing_add` (value + a "did it wrap?" flag).
-> ```rust
-> fn main() {
->     let x: u8 = 250;
->     println!("{:?}", x.checked_add(10));   // None — would overflow
->     println!("{}", x.wrapping_add(10));    // 4   — wraps around
->     println!("{}", x.saturating_add(10));  // 255 — clamps
-> }
-> ```
+> [!note] Overflow, literals, and conversions live in [Data Types](#/ch/data-types)
+> Three practical topics belong with the beginner chapter rather than this catalogue, and are covered there in full: **overflow** behaviour (panics in debug, wraps in release) with the `checked_`/`wrapping_`/`saturating_`/`overflowing_` family; **literal syntax** (`0xff`, `0b1010`, `b'A'`, `5u8`, `1_000`); and **converting between numeric types** — why `From` beats `TryFrom` beats `as`, and why `300i32 as u8` silently yields `44`. This chapter focuses on what each type *is* and how much space it occupies.
 
 **Usefulness.** Integers are everywhere: counts, IDs, indices, byte manipulation. Pick `u8` for raw bytes, `usize` for anything that indexes a collection, `i64`/`u64` for large counts or timestamps, and `i128`/`u128` only when you truly need the range. Defaulting to `i32`/`u32`/`usize` is almost always right.
 
